@@ -11,6 +11,7 @@ int main()
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif
 {
+
 	Window window;
 	window.init("NoPeek for Windows");
 

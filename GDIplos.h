@@ -15,9 +15,11 @@ public:
     bool LoadImageFromFile(const wchar_t* filePath);
     void DrawImage(HDC hdc, int x, int y);
     static std::vector<bool> GetMessageBits(const std::string& message);
-    bool EncodeMessage(const wchar_t* inputImagePath, const wchar_t* outputImagePath, const std::string& message);
+    static bool EncodeMessage(const wchar_t* inputImagePath, const wchar_t* outputImagePath, const std::string& message);
     static std::string BitsToMessage(const std::vector<bool>& bits);
-    std::string DecodeMessage(const wchar_t* imagePath);
+    static std::string DecodeMessage(const wchar_t* imagePath);
+
+    static int TestMain();
 
 private:
     ULONG_PTR gdiplusToken;

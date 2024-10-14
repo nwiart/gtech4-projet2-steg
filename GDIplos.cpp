@@ -1,6 +1,7 @@
 #include <windows.h>
 #include "GdiPlos.h"
 #include <commdlg.h>
+#include <iostream>
 
 GdiPlusManager* gdiManager = nullptr;
 
@@ -56,7 +57,7 @@ bool GdiPlusManager::EncodeMessage(const wchar_t* inputImagePath, const wchar_t*
     // Load the image
     Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(inputImagePath);
     if (!bitmap) {
-        //cout << "Failed to load image!" << endl;
+        std::cout << "Failed to load image!" << std::endl;
         Gdiplus::GdiplusShutdown(gdiplusToken);
         return false;
     }
@@ -112,7 +113,7 @@ std::string GdiPlusManager::DecodeMessage(const wchar_t* imagePath) {
     // Load the image
     Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(imagePath);
     if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
-        //cout << "Failed to load image!" << endl;
+        std::cout << "Failed to load image!" << std::endl;
         Gdiplus::GdiplusShutdown(gdiplusToken);
         return "";
     }
@@ -149,4 +150,29 @@ std::string GdiPlusManager::DecodeMessage(const wchar_t* imagePath) {
     delete bitmap;
     Gdiplus::GdiplusShutdown(gdiplusToken);
     return message;
+}
+
+int GdiPlusManager::TestMain() {
+    // Example usage for encoding
+    const wchar_t* inputImagePath = L"input.bmp";
+    const wchar_t* outputImagePath = L"output.bmp";
+    std::string message = "Hello, this is a secret message!";
+
+    if (GdiPlusManager::EncodeMessage(inputImagePath, outputImagePath, message + '\0')) {
+        std::cout << "Message successfully encoded." << std::endl;
+    }
+    else {
+        std::cout << "Failed to encode the message." << std::endl;
+    }
+
+    // Example usage for decoding
+    std::string decodedMessage = GdiPlusManager::DecodeMessage(outputImagePath);
+    if (!decodedMessage.empty()) {
+        std::cout << "Decoded message: " << decodedMessage << std::endl;
+    }
+    else {
+        std::cout << "Failed to decode the message." << std::endl;
+    }
+
+    return 0;
 }
