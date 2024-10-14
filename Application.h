@@ -15,6 +15,8 @@ class Application
 {
 public:
 
+	static void log(const char* msg);
+
 	static void openImage();
 
 	static SaveResult saveImage();

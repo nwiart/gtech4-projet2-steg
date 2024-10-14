@@ -17,6 +17,16 @@
 static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 
 
+enum
+{
+	ID_BTN_OPEN = 801,
+	ID_BTN_SAVE,
+	ID_BTN_ENCODE,
+	ID_BTN_DECODE,
+	ID_BTN_CLEAR,
+};
+
+
 Window& Window::getInstance()
 {
 	static Window instance;
@@ -66,6 +76,23 @@ void Window::run()
 	}
 }
 
+static HWND hLog, hBtnClear;
+
+void Window::clearLog()
+{
+	SetWindowText(hLog, "");
+}
+
+void Window::appendLogLine(const char* msg)
+{
+	int len = SendMessage(hLog, WM_GETTEXTLENGTH, 0, 0);
+
+	char lineFeed[] = "\r\n";
+	SendMessage(hLog, EM_SETSEL, len, len);
+	SendMessage(hLog, EM_REPLACESEL, false, (LPARAM)msg);
+	SendMessage(hLog, EM_REPLACESEL, false, (LPARAM)lineFeed);
+}
+
 
 static BOOL CALLBACK setFont(HWND hwnd, LPARAM lparam)
 {
@@ -74,14 +101,26 @@ static BOOL CALLBACK setFont(HWND hwnd, LPARAM lparam)
 }
 static void create(HWND hwnd)
 {
-	HWND htruc = CreateWindow("STATIC", "This image is\nbig lmao", WS_CHILD | WS_VISIBLE, 10, 10, 180, 180, hwnd, 0, GetModuleHandle(0), 0);
+	// Log panel.
+	hLog = CreateWindow("EDIT", "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_BORDER, 10, 220, 180, 200, hwnd, 0, 0, 0);
+	SendMessage(hLog, EM_LIMITTEXT, 1*1024*1024, 0);
 
-	HWND hwndButton = CreateWindow("BUTTON", "Encode", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 100, 80, 20, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Open Image",  WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 5,   70,  90, 24, hwnd, (HMENU)ID_BTN_OPEN, 0, 0);
+	CreateWindow("BUTTON", "Save Result", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 105, 70,  90, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+
+	CreateWindow("BUTTON", "Encode",      WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 5,   100, 90, 24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
+	CreateWindow("BUTTON", "Decode",      WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 105, 100, 90, 24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
+
+	hBtnClear = CreateWindow("BUTTON", "Clear", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 130, 80, 24, hwnd, (HMENU)ID_BTN_CLEAR, 0, 0);
 
 	// Set font globally.
 	HFONT hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 	SendMessage(hwnd, WM_SETFONT, (WPARAM)hFont, 0);
 	EnumChildWindows(hwnd, &setFont, (LPARAM)hFont);
+
+	// Set mono font.
+	HFONT hFontMono = CreateFont(14, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Consolas");
+	SendMessage(hLog, WM_SETFONT, (WPARAM)hFontMono, 0);
 }
 
 static void paint(HWND hwnd, HDC hdc)
@@ -102,7 +141,6 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		return 0;
-
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
@@ -110,6 +148,16 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 	case WM_CREATE:
 		create(hwnd);
 		break;
+
+	// Resizing.
+	case WM_GETMINMAXINFO:
+		((MINMAXINFO*) lparam)->ptMinTrackSize.x = 400;
+		((MINMAXINFO*) lparam)->ptMinTrackSize.y = 400;
+		return 0;
+	case WM_SIZE:
+		MoveWindow(hLog,      200, HIWORD(lparam) - 200,      LOWORD(lparam) - 200, 200, true);
+		MoveWindow(hBtnClear, 200, HIWORD(lparam) - 200 - 24, 80,                   24,  true);
+		return 0;
 
 	case WM_COMMAND:
 		switch (LOWORD(wparam))
@@ -123,6 +171,16 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 			return 0;
 		case ID_FILE_EXIT:
 			DestroyWindow(hwnd);
+			return 0;
+
+		case ID_BTN_ENCODE:
+			Application::log("Encode : Not implemented");
+			return 0;
+		case ID_BTN_DECODE:
+			Application::log("Decode : Not implemented");
+			return 0;
+		case ID_BTN_CLEAR:
+			win->clearLog();
 			return 0;
 		}
 		break;

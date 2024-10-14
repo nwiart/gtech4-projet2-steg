@@ -19,7 +19,14 @@ public:
 
 	void run();
 
+	void clearLog();
+	void appendLogLine(const char* msg);
+
 	inline HWND getHwnd() const { return m_hwnd; }
+
+public:
+
+	static void create(HWND hwnd);
 
 
 private:

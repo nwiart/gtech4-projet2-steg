@@ -49,8 +49,15 @@ static bool getEncoderByExtension(const char* ext, CLSID* id)
 }
 
 
+void Application::log(const char* msg)
+{
+	Window::getInstance().appendLogLine(msg);
+}
+
 void Application::openImage()
 {
+	Application::log("Opening image...");
+
 	HWND hwnd = Window::getInstance().getHwnd();
 	char path[MAX_PATH];
 	path[0] = '\0';
@@ -64,12 +71,17 @@ void Application::openImage()
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
 	if (!GetOpenFileName(&ofn)) {
+		Application::log("Open aborted.");
 		return;
 	}
 
 	if (!GdiPlusManager::getInstance().LoadImageFromFile(path)) {
 		MessageBox(hwnd, "There was a problem loading the image.", "Oops...", MB_OK);
+		Application::log("Unknown error while opening an image.");
+		return;
 	}
+
+	Application::log("Successfully opened image!");
 }
 
 
