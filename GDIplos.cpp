@@ -48,7 +48,7 @@ std::vector<bool> GdiPlusManager::GetMessageBits(const std::string& message) {
 }
 
 
-bool EncodeMessage(const wchar_t* inputImagePath, const wchar_t* outputImagePath, const std::string& message) {
+bool GdiPlusManager::EncodeMessage(const wchar_t* inputImagePath, const wchar_t* outputImagePath, const std::string& message) {
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
@@ -87,4 +87,66 @@ bool EncodeMessage(const wchar_t* inputImagePath, const wchar_t* outputImagePath
     delete bitmap;
     Gdiplus::GdiplusShutdown(gdiplusToken);
     return true;
+}
+
+std::string GdiPlusManager::BitsToMessage(const std::vector<bool>& bits) {
+    std::string message;
+    for (size_t i = 0; i < bits.size(); i += 8) {
+        char c = 0;
+        for (int j = 0; j < 8; ++j) {
+            c |= bits[i + j] << (7 - j);
+        }
+        if (c == '\0') {
+            break; // End of message
+        }
+        message += c;
+    }
+    return message;
+}
+
+std::string GdiPlusManager::DecodeMessage(const wchar_t* imagePath) {
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
+
+    // Load the image
+    Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(imagePath);
+    if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
+        //cout << "Failed to load image!" << endl;
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return "";
+    }
+
+    std::vector<bool> messageBits;
+
+    // Iterate over each pixel to extract the message
+    for (UINT y = 0; y < bitmap->GetHeight(); y++) {
+        for (UINT x = 0; x < bitmap->GetWidth(); x++) {
+            Gdiplus::Color pixelColor;
+            bitmap->GetPixel(x, y, &pixelColor);
+
+            // Extract the LSBs from the RGB values
+            messageBits.push_back(pixelColor.GetR() & 1);
+            messageBits.push_back(pixelColor.GetG() & 1);
+            messageBits.push_back(pixelColor.GetB() & 1);
+
+            // Check if the message contains a multiple of 8 bits
+            if (messageBits.size() % 8 == 0) {
+                // Try to detect the end of the message
+                std::string currentMessage = BitsToMessage(messageBits);
+                if (!currentMessage.empty() && currentMessage.back() == '\0') {
+                    messageBits.resize(messageBits.size() - 8); // Remove the delimiter
+                    break;
+                }
+            }
+        }
+    }
+
+    // Decode the bits into a message
+    std::string message = BitsToMessage(messageBits);
+
+    // Cleanup
+    delete bitmap;
+    Gdiplus::GdiplusShutdown(gdiplusToken);
+    return message;
 }
