@@ -49,7 +49,7 @@ void Window::init(const char* title)
 	// Create the main window's class.
 	WNDCLASSEX wcex; ZeroMemory(&wcex, sizeof(wcex));
 	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.hbrBackground = (HBRUSH)COLOR_WINDOW;
 	wcex.hInstance = hinstance;
 	wcex.lpszClassName = wndClass;
 	// Load the menu from resources (avoids clogging this file).
@@ -74,6 +74,11 @@ void Window::run()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+}
+
+void Window::repaintImages()
+{
+	InvalidateRect(m_hwnd, 0, true);
 }
 
 static HWND hLog, hBtnClear;
@@ -105,11 +110,16 @@ static void create(HWND hwnd)
 	hLog = CreateWindow("EDIT", "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_BORDER, 10, 220, 180, 200, hwnd, 0, 0, 0);
 	SendMessage(hLog, EM_LIMITTEXT, 1*1024*1024, 0);
 
-	CreateWindow("BUTTON", "Open Image",  WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 5,   70,  90, 24, hwnd, (HMENU)ID_BTN_OPEN, 0, 0);
-	CreateWindow("BUTTON", "Save Result", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 105, 70,  90, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+	CreateWindow("BUTTON", "1. Load image and data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   10,  190, 60, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Open Image",             WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  35,  80,  24, hwnd, (HMENU)ID_BTN_OPEN, 0, 0);
+	CreateWindow("BUTTON", "Open File",              WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 35,  80,  24, hwnd, 0, 0, 0);
 
-	CreateWindow("BUTTON", "Encode",      WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 5,   100, 90, 24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
-	CreateWindow("BUTTON", "Decode",      WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 105, 100, 90, 24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
+	CreateWindow("BUTTON", "2. Process hidden data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   80,  190, 60, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Encode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  105, 80,  24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
+	CreateWindow("BUTTON", "Decode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 105, 80,  24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
+
+	CreateWindow("BUTTON", "3. Save the new image",  WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   150, 190, 60, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Save Result",            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  175, 170, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
 
 	hBtnClear = CreateWindow("BUTTON", "Clear", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 130, 80, 24, hwnd, (HMENU)ID_BTN_CLEAR, 0, 0);
 
@@ -164,7 +174,6 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 		{
 		case ID_FILE_OPENIMAGE:
 			Application::openImage();
-			InvalidateRect(hwnd, 0, false);
 			return 0;
 		case ID_FILE_SAVEIMAGE:
 			Application::saveImage();
@@ -173,6 +182,12 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 			DestroyWindow(hwnd);
 			return 0;
 
+		case ID_BTN_OPEN:
+			Application::openImage();
+			return 0;
+		case ID_BTN_SAVE:
+			Application::saveImage();
+			return 0;
 		case ID_BTN_ENCODE:
 			Application::log("Encode : Not implemented");
 			return 0;

@@ -5,6 +5,8 @@
 
 #include <Windows.h>
 
+#include <string>
+
 
 static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
@@ -81,7 +83,9 @@ void Application::openImage()
 		return;
 	}
 
-	Application::log("Successfully opened image!");
+	Window::getInstance().repaintImages();
+
+	Application::log((std::string("Successfully opened \"") + path + "\"").c_str());
 }
 
 

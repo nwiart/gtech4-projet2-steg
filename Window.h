@@ -19,6 +19,9 @@ public:
 
 	void run();
 
+	// Invalidates the images region to force redraw.
+	void repaintImages();
+
 	void clearLog();
 	void appendLogLine(const char* msg);
 
