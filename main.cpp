@@ -11,10 +11,9 @@ int main()
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif
 {
+	Window& window = Window::getInstance();
 
-	Window window;
 	window.init("NoPeek for Windows");
-
 	window.run();
 
 	return 0;
