@@ -25,7 +25,6 @@ void MatriceEmbedding::EmbedMessageInImage(const string& message) {
 
     for (UINT y = 0; y < bmp->GetHeight(); ++y) {
         for (UINT x = 0; x < bmp->GetWidth(); ++x) {
-            if (complete) break;
 
             Color pixelColor;
             bmp->GetPixel(x, y, &pixelColor);
@@ -52,7 +51,6 @@ void MatriceEmbedding::EmbedMessageInImage(const string& message) {
 
             if (dataIndex >= dataLength) {
                 complete = true;
-                break;
             }
         }
     }
@@ -61,7 +59,7 @@ void MatriceEmbedding::EmbedMessageInImage(const string& message) {
         Application::log("Image too small to hide the whole message");
     }
     else {
-        Application::log("Message hidden perfectly");
+        Application::log(("Message hidden perfectly :" + message).c_str());
     }
 
     GdiPlusManager::getInstance().setGeneratedImage(dest);
@@ -101,6 +99,8 @@ string MatriceEmbedding::DecodeMessageFromImage(Bitmap* bmp, int messageLength) 
         bitset<8> byte(binaryMessage.substr(i, 8));
         decodedMessage += static_cast<char>(byte.to_ulong());
     }
+
+    Application::log(("decoded message Matrix: " + decodedMessage).c_str());
 
     return decodedMessage;
 }
