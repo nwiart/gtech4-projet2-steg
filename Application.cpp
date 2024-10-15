@@ -2,6 +2,7 @@
 
 #include "Window.h"
 #include "GDIplos.h"
+#include "Logger.h"
 
 #include <Windows.h>
 
@@ -54,6 +55,7 @@ static bool getEncoderByExtension(const char* ext, CLSID* id)
 void Application::log(const char* msg)
 {
 	Window::getInstance().appendLogLine(msg);
+	Logger::logMessage(msg);
 }
 
 void Application::openImage()
