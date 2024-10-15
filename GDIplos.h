@@ -27,6 +27,11 @@ public:
 
     inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
 
+    inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
+    void ApplyBlur(int radius);
+    void ResizeImage(int newWidth, int newHeight);
+    void ApplySepia();
+
 private:
     ULONG_PTR gdiplusToken;
     Gdiplus::Bitmap* loadedImage;

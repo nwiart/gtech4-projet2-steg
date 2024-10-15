@@ -17,6 +17,16 @@
 static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 
 
+enum
+{
+	ID_BTN_OPEN = 801,
+	ID_BTN_SAVE,
+	ID_BTN_ENCODE,
+	ID_BTN_DECODE,
+	ID_BTN_CLEAR,
+};
+
+
 Window& Window::getInstance()
 {
 	static Window instance;
@@ -39,7 +49,7 @@ void Window::init(const char* title)
 	// Create the main window's class.
 	WNDCLASSEX wcex; ZeroMemory(&wcex, sizeof(wcex));
 	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.hbrBackground = (HBRUSH)COLOR_WINDOW;
 	wcex.hInstance = hinstance;
 	wcex.lpszClassName = wndClass;
 	// Load the menu from resources (avoids clogging this file).
@@ -64,6 +74,77 @@ void Window::run()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+}
+
+void Window::repaintImages()
+{
+	InvalidateRect(m_hwnd, 0, true);
+}
+
+static HWND hLog, hBtnClear, hComboMethod, hStats;
+
+void Window::clearLog()
+{
+	SetWindowText(hLog, "");
+}
+
+void Window::appendLogLine(const char* msg)
+{
+	int len = SendMessage(hLog, WM_GETTEXTLENGTH, 0, 0);
+
+	char lineFeed[] = "\r\n";
+	SendMessage(hLog, EM_SETSEL, len, len);
+	SendMessage(hLog, EM_REPLACESEL, false, (LPARAM)msg);
+	SendMessage(hLog, EM_REPLACESEL, false, (LPARAM)lineFeed);
+}
+
+
+static BOOL CALLBACK setFont(HWND hwnd, LPARAM lparam)
+{
+	SendMessage(hwnd, WM_SETFONT, (WPARAM)lparam, 0);
+	return true;
+}
+static void create(HWND hwnd)
+{
+	// Log panel.
+	hLog = CreateWindow("EDIT", "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_BORDER, 10, 220, 180, 200, hwnd, 0, 0, 0);
+	SendMessage(hLog, EM_LIMITTEXT, 1*1024*1024, 0);
+
+	hBtnClear = CreateWindow("BUTTON", "Clear", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 130, 80, 24, hwnd, (HMENU)ID_BTN_CLEAR, 0, 0);
+
+	// Action buttons.
+	CreateWindow("BUTTON", "1. Load image and data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   10,  190, 60, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Open Image",             WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  35,  80,  24, hwnd, (HMENU)ID_BTN_OPEN, 0, 0);
+	CreateWindow("BUTTON", "Open File",              WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 35,  80,  24, hwnd, 0, 0, 0);
+
+	CreateWindow("BUTTON", "2. Process hidden data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   80,  190, 90, hwnd, 0, 0, 0);
+	hComboMethod = CreateWindow("COMBOBOX", "",      WS_CHILD | WS_VISIBLE | WS_OVERLAPPED | CBS_DROPDOWN | CBS_HASSTRINGS, 15, 105, 170, 200, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Encode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  135, 80,  24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
+	CreateWindow("BUTTON", "Decode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 135, 80,  24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
+
+	CreateWindow("BUTTON", "3. Save the new image",  WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   180, 190, 60, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Save Result",            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  205, 170, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+
+	// Image & data stats.
+	hStats = CreateWindow("STATIC", "No loaded image.", WS_CHILD | WS_VISIBLE, 10, 250, 180, 200, hwnd, 0, 0, 0);
+
+	// Set steganography methods.
+	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"LSB Extended");
+	SendMessage(hComboMethod, CB_SETCURSEL, 0, 0);
+
+	// Set font globally.
+	HFONT hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
+	SendMessage(hwnd, WM_SETFONT, (WPARAM)hFont, 0);
+	EnumChildWindows(hwnd, &setFont, (LPARAM)hFont);
+
+	// Set mono font.
+	HFONT hFontMono = CreateFont(14, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Consolas");
+	SendMessage(hLog, WM_SETFONT, (WPARAM)hFontMono, 0);
+}
+
+static void paint(HWND hwnd, HDC hdc)
+{
+	GdiPlusManager::getInstance().DrawImage(hdc, 200, 0);
 }
 
 
@@ -102,7 +183,6 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		return 0;
-
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
@@ -111,18 +191,43 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 		create(hwnd);
 		break;
 
+	// Resizing.
+	case WM_GETMINMAXINFO:
+		((MINMAXINFO*) lparam)->ptMinTrackSize.x = 400;
+		((MINMAXINFO*) lparam)->ptMinTrackSize.y = 400;
+		return 0;
+	case WM_SIZE:
+		MoveWindow(hLog,      200, HIWORD(lparam) - 300,      LOWORD(lparam) - 200, 300, true);
+		MoveWindow(hBtnClear, 200, HIWORD(lparam) - 300 - 24, 80,                   24,  true);
+		return 0;
+
 	case WM_COMMAND:
 		switch (LOWORD(wparam))
 		{
 		case ID_FILE_OPENIMAGE:
 			Application::openImage();
-			InvalidateRect(hwnd, 0, false);
 			return 0;
 		case ID_FILE_SAVEIMAGE:
 			Application::saveImage();
 			return 0;
 		case ID_FILE_EXIT:
 			DestroyWindow(hwnd);
+			return 0;
+
+		case ID_BTN_OPEN:
+			Application::openImage();
+			return 0;
+		case ID_BTN_SAVE:
+			Application::saveImage();
+			return 0;
+		case ID_BTN_ENCODE:
+			Application::log("Encode : Not implemented");
+			return 0;
+		case ID_BTN_DECODE:
+			Application::log("Decode : Not implemented");
+			return 0;
+		case ID_BTN_CLEAR:
+			win->clearLog();
 			return 0;
 		}
 		break;
