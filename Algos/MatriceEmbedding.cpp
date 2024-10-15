@@ -120,54 +120,47 @@ void MatriceEmbedding::EmbedMessageInImage(const string& message) {
 }
 
 string MatriceEmbedding::DecodeMessageFromImage(Bitmap* bmp) {
-    std::vector<int> hammingBits;
-    int bitCount = 0;
-
     if (!bmp) {
         Application::log("Error: Image not found.");
         return "";
     }
+
+    std::vector<int> hammingBits;
+    hammingBits.reserve(bmp->GetWidth() * bmp->GetHeight() * 3);
 
     for (UINT y = 0; y < bmp->GetHeight(); ++y) {
         for (UINT x = 0; x < bmp->GetWidth(); ++x) {
             Color pixelColor;
             bmp->GetPixel(x, y, &pixelColor);
 
-            BYTE red = pixelColor.GetR();
-            BYTE green = pixelColor.GetG();
-            BYTE blue = pixelColor.GetB();
-
-            hammingBits.push_back(red & 0x01);
-            ++bitCount;
-
-            hammingBits.push_back(green & 0x01);
-            ++bitCount;
-
-            hammingBits.push_back(blue & 0x01);
-            ++bitCount;
+            hammingBits.push_back(pixelColor.GetR() & 0x01);
+            hammingBits.push_back(pixelColor.GetG() & 0x01);
+            hammingBits.push_back(pixelColor.GetB() & 0x01);
         }
     }
 
     std::vector<int> decodedBits;
+    decodedBits.reserve(hammingBits.size() / 7 * 4);
+
     for (size_t i = 0; i + 7 <= hammingBits.size(); i += 7) {
         std::vector<int> chunk(hammingBits.begin() + i, hammingBits.begin() + i + 7);
         std::vector<int> dataChunk = decode_hamming_7_4(chunk);
         decodedBits.insert(decodedBits.end(), dataChunk.begin(), dataChunk.end());
     }
 
-    string decodedMessage = "";
     if (decodedBits.size() % 8 != 0) {
         Application::log("Error: Incorrect number of decoded bits for conversion.");
         return "";
     }
 
-    for (size_t i = 0; i < decodedBits.size(); i += 8) {
-        bitset<8> byte;
-        for (int j = 0; j < 8; ++j) {
-            byte[j] = decodedBits[i + j];
-        }
+    string decodedMessage;
+    decodedMessage.reserve(decodedBits.size() / 8);
 
-        char decodedChar = static_cast<char>(byte.to_ulong());
+    for (size_t i = 0; i < decodedBits.size(); i += 8) {
+        unsigned char decodedChar = 0;
+        for (int j = 0; j < 8; ++j) {
+            decodedChar |= (decodedBits[i + j] << j);
+        }
 
         if (decodedChar == '\x03') {
             break;
@@ -180,3 +173,4 @@ string MatriceEmbedding::DecodeMessageFromImage(Bitmap* bmp) {
 
     return decodedMessage;
 }
+
