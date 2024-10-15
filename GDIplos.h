@@ -19,9 +19,9 @@ public:
     bool LoadImageFromFile(const char* filePath);
     void DrawImage(HDC hdc, int x, int y);
     static std::vector<bool> GetMessageBits(const std::string& message);
-    static bool EncodeMessage(const wchar_t* inputImagePath, const wchar_t* outputImagePath, const std::string& message);
+    static Gdiplus::Bitmap* EncodeMessage(const std::string& message);
     static std::string BitsToMessage(const std::vector<bool>& bits);
-    static std::string DecodeMessage(const wchar_t* imagePath);
+    static std::string DecodeMessage(Gdiplus::Bitmap* image);
 
     static int TestMain();
 

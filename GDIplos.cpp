@@ -76,17 +76,17 @@ std::vector<bool> GdiPlusManager::GetMessageBits(const std::string& message) {
 }
 
 
-bool GdiPlusManager::EncodeMessage(const wchar_t* inputImagePath, const wchar_t* outputImagePath, const std::string& message) {
+Gdiplus::Bitmap* GdiPlusManager::EncodeMessage(const std::string& message) {
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
 
     // Load the image
-    Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(inputImagePath);
+    Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(GdiPlusManager::getInstance().getImage()->GetWidth(), GdiPlusManager::getInstance().getImage()->GetHeight());
     if (!bitmap) {
         std::cout << "Failed to load image!" << std::endl;
         Gdiplus::GdiplusShutdown(gdiplusToken);
-        return false;
+        return bitmap;
     }
 
     std::vector<bool> messageBits = GdiPlusManager::GetMessageBits(message);
@@ -112,9 +112,9 @@ bool GdiPlusManager::EncodeMessage(const wchar_t* inputImagePath, const wchar_t*
         }
     }
     // Cleanup
-    delete bitmap;
+    
     Gdiplus::GdiplusShutdown(gdiplusToken);
-    return true;
+    return bitmap;
 }
 
 std::string GdiPlusManager::BitsToMessage(const std::vector<bool>& bits) {
@@ -132,13 +132,14 @@ std::string GdiPlusManager::BitsToMessage(const std::vector<bool>& bits) {
     return message;
 }
 
-std::string GdiPlusManager::DecodeMessage(const wchar_t* imagePath) {
+std::string GdiPlusManager::DecodeMessage(Gdiplus::Bitmap* image) {
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
 
     // Load the image
-    Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(imagePath);
+    Gdiplus::Bitmap* bitmap = image;
+
     if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
         std::cout << "Failed to load image!" << std::endl;
         Gdiplus::GdiplusShutdown(gdiplusToken);
@@ -181,19 +182,10 @@ std::string GdiPlusManager::DecodeMessage(const wchar_t* imagePath) {
 
 int GdiPlusManager::TestMain() {
     // Example usage for encoding
-    const wchar_t* inputImagePath = L"input.bmp";
-    const wchar_t* outputImagePath = L"output.bmp";
     std::string message = "Hello, this is a secret message!";
 
-    if (GdiPlusManager::EncodeMessage(inputImagePath, outputImagePath, message + '\0')) {
-        std::cout << "Message successfully encoded." << std::endl;
-    }
-    else {
-        std::cout << "Failed to encode the message." << std::endl;
-    }
-
     // Example usage for decoding
-    std::string decodedMessage = GdiPlusManager::DecodeMessage(outputImagePath);
+    std::string decodedMessage = GdiPlusManager::DecodeMessage(GdiPlusManager::EncodeMessage(message + '\0'));
     if (!decodedMessage.empty()) {
         std::cout << "Decoded message: " << decodedMessage << std::endl;
     }
