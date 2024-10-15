@@ -23,11 +23,11 @@ public:
     static std::string BitsToMessage(const std::vector<bool>& bits);
     static std::string DecodeMessage(Gdiplus::Bitmap* image);
 
-    static int TestMain();
-
     inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
 
-    inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
+    inline Gdiplus::Bitmap* getGeneratedImage() const { return generatedImage; }
+    inline void setGeneratedImage(Gdiplus::Bitmap* i) { generatedImage = i; }
+
     void ApplyBlur(int radius);
     void ResizeImage(int newWidth, int newHeight);
     void ApplySepia();
@@ -35,4 +35,5 @@ public:
 private:
     ULONG_PTR gdiplusToken;
     Gdiplus::Bitmap* loadedImage;
+    Gdiplus::Bitmap* generatedImage;
 };

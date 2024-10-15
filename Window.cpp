@@ -148,29 +148,6 @@ static void paint(HWND hwnd, HDC hdc)
 }
 
 
-static BOOL CALLBACK setFont(HWND hwnd, LPARAM lparam)
-{
-	SendMessage(hwnd, WM_SETFONT, (WPARAM)lparam, 0);
-	return true;
-}
-static void create(HWND hwnd)
-{
-	HWND htruc = CreateWindow("STATIC", "This image is\nbig lmao", WS_CHILD | WS_VISIBLE, 10, 10, 180, 180, hwnd, 0, GetModuleHandle(0), 0);
-
-	HWND hwndButton = CreateWindow("BUTTON", "Encode", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 100, 80, 20, hwnd, 0, 0, 0);
-
-	// Set font globally.
-	HFONT hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
-	SendMessage(hwnd, WM_SETFONT, (WPARAM)hFont, 0);
-	EnumChildWindows(hwnd, &setFont, (LPARAM)hFont);
-}
-
-static void paint(HWND hwnd, HDC hdc)
-{
-	GdiPlusManager::getInstance().DrawImage(hdc, 200, 0);
-}
-
-
 static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	PAINTSTRUCT ps;
@@ -221,10 +198,12 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 			Application::saveImage();
 			return 0;
 		case ID_BTN_ENCODE:
-			Application::log("Encode : Not implemented");
+			GdiPlusManager::EncodeMessage("This is a secret message\0");
+			//Application::log("Encode : Not implemented");
 			return 0;
 		case ID_BTN_DECODE:
-			Application::log("Decode : Not implemented");
+			GdiPlusManager::DecodeMessage(GdiPlusManager::getInstance().getImage());
+			//Application::log("Decode : Not implemented");
 			return 0;
 		case ID_BTN_CLEAR:
 			win->clearLog();

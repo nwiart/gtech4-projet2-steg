@@ -11,7 +11,7 @@ GdiPlusManager& GdiPlusManager::getInstance()
     return instance;
 }
 
-GdiPlusManager::GdiPlusManager() : loadedImage(nullptr)
+GdiPlusManager::GdiPlusManager() : loadedImage(nullptr), generatedImage(nullptr)
 {
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
@@ -77,15 +77,10 @@ std::vector<bool> GdiPlusManager::GetMessageBits(const std::string& message) {
 
 
 Gdiplus::Bitmap* GdiPlusManager::EncodeMessage(const std::string& message) {
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
-
     // Load the image
     Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(GdiPlusManager::getInstance().getImage()->GetWidth(), GdiPlusManager::getInstance().getImage()->GetHeight());
     if (!bitmap) {
-        std::cout << "Failed to load image!" << std::endl;
-        Gdiplus::GdiplusShutdown(gdiplusToken);
+        Logger::logMessage("Failed to encode message!");
         return bitmap;
     }
 
@@ -95,15 +90,11 @@ Gdiplus::Bitmap* GdiPlusManager::EncodeMessage(const std::string& message) {
     // Iterate over each pixel to encode the message
     for (UINT y = 0; y < bitmap->GetHeight(); y++) {
         for (UINT x = 0; x < bitmap->GetWidth(); x++) {
-            if (bitIndex >= messageBits.size()) {
-                break; // Exit if the entire message has been encoded
-            }
-
             Gdiplus::Color pixelColor;
-            bitmap->GetPixel(x, y, &pixelColor);
+            GdiPlusManager::getInstance().loadedImage->GetPixel(x, y, &pixelColor);
 
             // Modify the LSB of the pixel's RGB values
-            BYTE r = (pixelColor.GetR() & ~1) | messageBits[bitIndex++];
+            BYTE r = (pixelColor.GetR() & ~1) | (bitIndex < messageBits.size() ? messageBits[bitIndex++] : 0);
             BYTE g = (pixelColor.GetG() & ~1) | (bitIndex < messageBits.size() ? messageBits[bitIndex++] : 0);
             BYTE b = (pixelColor.GetB() & ~1) | (bitIndex < messageBits.size() ? messageBits[bitIndex++] : 0);
 
@@ -111,9 +102,10 @@ Gdiplus::Bitmap* GdiPlusManager::EncodeMessage(const std::string& message) {
             bitmap->SetPixel(x, y, newColor);
         }
     }
-    // Cleanup
-    
-    Gdiplus::GdiplusShutdown(gdiplusToken);
+
+    Logger::logMessage("Encoded message: " + message);
+
+    GdiPlusManager::getInstance().generatedImage = bitmap;
     return bitmap;
 }
 
@@ -133,16 +125,11 @@ std::string GdiPlusManager::BitsToMessage(const std::vector<bool>& bits) {
 }
 
 std::string GdiPlusManager::DecodeMessage(Gdiplus::Bitmap* image) {
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
-
     // Load the image
     Gdiplus::Bitmap* bitmap = image;
 
     if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
-        std::cout << "Failed to load image!" << std::endl;
-        Gdiplus::GdiplusShutdown(gdiplusToken);
+        Logger::logMessage("Failed to load image");
         return "";
     }
 
@@ -174,27 +161,10 @@ std::string GdiPlusManager::DecodeMessage(Gdiplus::Bitmap* image) {
     // Decode the bits into a message
     std::string message = BitsToMessage(messageBits);
 
-    // Cleanup
-    delete bitmap;
-    Gdiplus::GdiplusShutdown(gdiplusToken);
+    Logger::logMessage("decoded message: " + message);
     return message;
 }
 
-int GdiPlusManager::TestMain() {
-    // Example usage for encoding
-    std::string message = "Hello, this is a secret message!";
-
-    // Example usage for decoding
-    std::string decodedMessage = GdiPlusManager::DecodeMessage(GdiPlusManager::EncodeMessage(message + '\0'));
-    if (!decodedMessage.empty()) {
-        std::cout << "Decoded message: " << decodedMessage << std::endl;
-    }
-    else {
-        std::cout << "Failed to decode the message." << std::endl;
-    }
-
-    return 0;
-}
 
 void GdiPlusManager::ApplyBlur(int radius)
 {
