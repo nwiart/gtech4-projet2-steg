@@ -130,6 +130,7 @@ static void create(HWND hwnd)
 
 	// Set steganography methods.
 	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"LSB Extended");
+	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"Matric Embedding");
 	SendMessage(hComboMethod, CB_SETCURSEL, 0, 0);
 
 	// Set font globally.
