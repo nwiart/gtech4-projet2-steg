@@ -6,33 +6,9 @@ using namespace std;
 using namespace Gdiplus;
 
 
-static vector<bool> GetMessageBits(const string& message) {
-    vector<bool> bits;
-    for (char c : message) {
-        for (int i = 7; i >= 0; --i) {
-            bits.push_back((c >> i) & 1);
-        }
-    }
-    return bits;
-}
+#define BIT(byte, i) ((byte & (1 << i)) >> i)
 
-static string BitsToMessage(const vector<bool>& bits) {
-    string message;
-    for (size_t i = 0; i < bits.size(); i += 8) {
-        char c = 0;
-        for (int j = 0; j < 8; ++j) {
-            c |= bits[i + j] << (7 - j);
-        }
-        if (c == '\0') {
-            break; // End of message
-        }
-        message += c;
-    }
-    return message;
-}
-
-
-void LSB::EmbedMessageInImage(const string& message) {
+void LSB::EmbedMessageInImage(const BinaryBuffer& message) {
     // Load the image
     Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(GdiPlusManager::getInstance().getImage()->GetWidth(), GdiPlusManager::getInstance().getImage()->GetHeight());
     if (!bitmap) {
@@ -40,7 +16,7 @@ void LSB::EmbedMessageInImage(const string& message) {
         return;
     }
 
-    std::vector<bool> messageBits = GetMessageBits(message);
+    const int numBits = message.getSize() * 8;
     int bitIndex = 0;
 
     // Iterate over each pixel to encode the message
@@ -50,30 +26,35 @@ void LSB::EmbedMessageInImage(const string& message) {
             GdiPlusManager::getInstance().getImage()->GetPixel(x, y, &pixelColor);
 
             // Modify the LSB of the pixel's RGB values
-            BYTE r = (pixelColor.GetR() & ~1) | (bitIndex < messageBits.size() ? messageBits[bitIndex++] : 0);
-            BYTE g = (pixelColor.GetG() & ~1) | (bitIndex < messageBits.size() ? messageBits[bitIndex++] : 0);
-            BYTE b = (pixelColor.GetB() & ~1) | (bitIndex < messageBits.size() ? messageBits[bitIndex++] : 0);
+            BYTE r = (pixelColor.GetR() & ~1) | (bitIndex < numBits ? BIT(message.getData()[bitIndex / 8], bitIndex % 8) : 0); bitIndex++;
+            BYTE g = (pixelColor.GetG() & ~1) | (bitIndex < numBits ? BIT(message.getData()[bitIndex / 8], bitIndex % 8) : 0); bitIndex++;
+            BYTE b = (pixelColor.GetB() & ~1) | (bitIndex < numBits ? BIT(message.getData()[bitIndex / 8], bitIndex % 8) : 0); bitIndex++;
 
             Gdiplus::Color newColor(pixelColor.GetA(), r, g, b);
             bitmap->SetPixel(x, y, newColor);
         }
     }
 
-    Application::log(("Encoded message: " + message).c_str());
+    Application::log((std::string("Encoded ") + std::to_string(message.getSize()) + " bytes.").c_str());
 
     GdiPlusManager::getInstance().setGeneratedImage(bitmap);
 }
 
-string LSB::DecodeMessageFromImage(Bitmap* bmp, int messageLength) {
+BinaryBuffer LSB::DecodeMessageFromImage(Bitmap* bmp) {
     // Load the image
     Gdiplus::Bitmap* bitmap = bmp;
 
     if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
         Application::log("Failed to load image");
-        return "";
+        return {};
     }
 
-    std::vector<bool> messageBits;
+    const int numBits = bmp->GetWidth() * bmp->GetHeight() * 3;
+    const int numBytes = numBits / 8;
+    unsigned char* data = (unsigned char*) malloc(numBytes);
+    memset(data, 0, numBytes);
+
+    int bits = 0;
 
     // Iterate over each pixel to extract the message
     for (UINT y = 0; y < bitmap->GetHeight(); y++) {
@@ -82,25 +63,13 @@ string LSB::DecodeMessageFromImage(Bitmap* bmp, int messageLength) {
             bitmap->GetPixel(x, y, &pixelColor);
 
             // Extract the LSBs from the RGB values
-            messageBits.push_back(pixelColor.GetR() & 1);
-            messageBits.push_back(pixelColor.GetG() & 1);
-            messageBits.push_back(pixelColor.GetB() & 1);
-
-            // Check if the message contains a multiple of 8 bits
-            if (messageBits.size() % 8 == 0) {
-                // Try to detect the end of the message
-                std::string currentMessage = BitsToMessage(messageBits);
-                if (!currentMessage.empty() && currentMessage.back() == '\0') {
-                    messageBits.resize(messageBits.size() - 8); // Remove the delimiter
-                    break;
-                }
-            }
+            data[bits / 8] |= ((pixelColor.GetR() & 1) << (bits % 8)); bits++;
+            data[bits / 8] |= ((pixelColor.GetG() & 1) << (bits % 8)); bits++;
+            data[bits / 8] |= ((pixelColor.GetB() & 1) << (bits % 8)); bits++;
         }
     }
 
-    // Decode the bits into a message
-    std::string message = BitsToMessage(messageBits);
-
-    Application::log(("decoded message: " + message).c_str());
-    return message;
+    Application::log((std::string("Decoded ") + std::to_string(numBytes) + " bytes.").c_str());
+    
+    return BinaryBuffer(data, numBytes);
 }

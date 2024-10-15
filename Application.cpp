@@ -12,6 +12,9 @@
 #include <string>
 
 
+static char* messageBuffer = 0;
+
+
 static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
 	UINT  num = 0;          // number of image encoders
@@ -93,6 +96,50 @@ void Application::openImage()
 	Application::log((std::string("Successfully opened \"") + path + "\"").c_str());
 }
 
+void Application::openMessage()
+{
+	Application::log("Opening message file...");
+
+	HWND hwnd = Window::getInstance().getHwnd();
+	char path[MAX_PATH];
+	path[0] = '\0';
+
+	OPENFILENAME ofn; ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = hwnd;
+	ofn.lpstrFile = path;
+	ofn.nMaxFile = sizeof(path);
+	ofn.lpstrFilter = "All\0*.*\0";
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	if (!GetOpenFileName(&ofn)) {
+		Application::log("Open aborted.");
+		return;
+	}
+
+	FILE* file = fopen(path, "rb");
+	if (!file) {
+		Application::log("Unknown error while opening file.");
+		return;
+	}
+
+	fseek(file, 0, SEEK_END);
+	size_t size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	if (messageBuffer) {
+		free(messageBuffer);
+		messageBuffer = 0;
+	}
+
+	messageBuffer = (char*) malloc(size);
+	fread(messageBuffer, size, 1, file);
+
+	fclose(file);
+
+	Application::log((std::string("Successfully opened \"") + path + "\"").c_str());
+}
+
 void Application::saveImage()
 {
 	SaveResult res = _saveImage();
@@ -155,10 +202,12 @@ SaveResult Application::_saveImage()
 
 void Application::encode(EncodeMethod m)
 {
+	char msg[] = "This is a secret message!";
+
 	switch (m)
 	{
 	case EncodeMethod::LSB:
-		LSB::EmbedMessageInImage("This is a secret message!");
+		LSB::EmbedMessageInImage(BinaryBuffer(msg, strlen(msg) + 1));
 		break;
 	case EncodeMethod::MATRIX_EMBEDDING:
 		MatriceEmbedding::EmbedMessageInImage("This is a secret message (with matrix embed)!");
@@ -168,17 +217,19 @@ void Application::encode(EncodeMethod m)
 
 void Application::decode(EncodeMethod m)
 {
-	std::string s;
+	BinaryBuffer b;
 
 	switch (m)
 	{
 	case EncodeMethod::LSB:
-		s = LSB::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage(), 0);
+		b = LSB::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
 	case EncodeMethod::MATRIX_EMBEDDING:
-		s = MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
+		MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
 	}
+
+	Application::log((const char*) b.getData());
 }
 
 
