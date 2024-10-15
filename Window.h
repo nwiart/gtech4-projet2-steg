@@ -19,7 +19,17 @@ public:
 
 	void run();
 
+	// Invalidates the images region to force redraw.
+	void repaintImages();
+
+	void clearLog();
+	void appendLogLine(const char* msg);
+
 	inline HWND getHwnd() const { return m_hwnd; }
+
+public:
+
+	static void create(HWND hwnd);
 
 
 private:
