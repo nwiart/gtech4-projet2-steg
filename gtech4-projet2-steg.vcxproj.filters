@@ -59,13 +59,16 @@
     <ClInclude Include="Algos\LSB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BinaryBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="gtech4-projet2-steg.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="README.md" />
   </ItemGroup>
 </Project>

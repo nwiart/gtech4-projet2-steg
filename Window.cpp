@@ -20,6 +20,7 @@ static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 enum
 {
 	ID_BTN_OPEN = 801,
+	ID_BTN_OPENMESSAGE,
 	ID_BTN_SAVE,
 	ID_BTN_ENCODE,
 	ID_BTN_DECODE,
@@ -119,7 +120,7 @@ static void create(HWND hwnd)
 	// Action buttons.
 	CreateWindow("BUTTON", "1. Load image and data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   10,  190, 60, hwnd, 0, 0, 0);
 	CreateWindow("BUTTON", "Open Image",             WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  35,  80,  24, hwnd, (HMENU)ID_BTN_OPEN, 0, 0);
-	CreateWindow("BUTTON", "Open File",              WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 35,  80,  24, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Open File",              WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 35,  80,  24, hwnd, (HMENU)ID_BTN_OPENMESSAGE, 0, 0);
 
 	CreateWindow("BUTTON", "2. Process hidden data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   80,  190, 90, hwnd, 0, 0, 0);
 	hComboMethod = CreateWindow("COMBOBOX", "",      WS_CHILD | WS_VISIBLE | WS_OVERLAPPED | CBS_DROPDOWN | CBS_HASSTRINGS, 15, 105, 170, 200, hwnd, 0, 0, 0);
@@ -166,6 +167,9 @@ static bool processMenuCommand(HWND hwnd, int code)
 
 	case ID_BTN_OPEN:
 		Application::openImage();
+		break;
+	case ID_BTN_OPENMESSAGE:
+		Application::openMessage();
 		break;
 	case ID_BTN_SAVE:
 		Application::saveImage();

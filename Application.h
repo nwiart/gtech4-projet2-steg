@@ -25,6 +25,7 @@ public:
 	static void log(const char* msg);
 
 	static void openImage();
+	static void openMessage();
 	static void saveImage();
 
 	static void encode(EncodeMethod m);

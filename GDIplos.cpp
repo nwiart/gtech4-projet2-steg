@@ -57,15 +57,11 @@ bool GdiPlusManager::LoadImageFromFile(const char* filePath)
 
 void GdiPlusManager::DrawImage(HDC hdc, int x, int y)
 {
-    if (loadedImage) {
-        Gdiplus::Graphics graphics(hdc);
-        graphics.DrawImage(loadedImage, x, y);
-
-        Application::log(("Image drawn at position: (" + std::to_string(x) + ", " + std::to_string(y) + ")").c_str());
+    if (!loadedImage) {
+        return;
     }
-    else {
-        Application::log("Attempt to draw image failed. No image loaded.");
-    }
+    Gdiplus::Graphics graphics(hdc);
+    graphics.DrawImage(loadedImage, x, y);
 }
 
 
