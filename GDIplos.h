@@ -32,11 +32,6 @@ public:
     void ResizeImage(int newWidth, int newHeight);
     void ApplySepia();
 
-    inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
-    void ApplyBlur(int radius);
-    void ResizeImage(int newWidth, int newHeight);
-    void ApplySepia();
-
 private:
     ULONG_PTR gdiplusToken;
     Gdiplus::Bitmap* loadedImage;
