@@ -67,7 +67,7 @@ void GdiPlusManager::DrawImage(HDC hdc, int x, int y)
         Gdiplus::Graphics graphics(hdc);
         graphics.DrawImage(loadedImage, x, y);
 
-        Application::log("Image drawn at position: (" + std::to_string(x) + ", " + std::to_string(y) + ")");
+        Application::log(("Image drawn at position: (" + std::to_string(x) + ", " + std::to_string(y) + ")").c_str());
     }
     else {
         Application::log("Attempt to draw image failed. No image loaded.");
@@ -112,7 +112,7 @@ Gdiplus::Bitmap* GdiPlusManager::EncodeMessage(const std::string& message) {
         }
     }
 
-    Application::log("Encoded message: " + message);
+    Application::log(("Encoded message: " + message).c_str());
 
     GdiPlusManager::getInstance().generatedImage = bitmap;
     return bitmap;
@@ -170,7 +170,7 @@ std::string GdiPlusManager::DecodeMessage(Gdiplus::Bitmap* image) {
     // Decode the bits into a message
     std::string message = BitsToMessage(messageBits);
 
-    Application::log("decoded message: " + message);
+    Application::log(("decoded message: " + message).c_str());
     return message;
 }
 
@@ -211,7 +211,7 @@ void GdiPlusManager::ApplyBlur(int radius)
         delete loadedImage;
         loadedImage = blurredImage;
 
-        Logger::logMessage("Applied manual blur with radius: " + std::to_string(radius));
+        Application::log(("Applied manual blur with radius: " + std::to_string(radius)).c_str());
     }
 }
 
@@ -226,8 +226,8 @@ void GdiPlusManager::ResizeImage(int newWidth, int newHeight)
         delete loadedImage;
         loadedImage = resizedImage;
 
-        Logger::logMessage("Resized image to: " + std::to_string(newWidth) + "x" + std::to_string(newHeight));
-    }
+        Application::log(("Resized image to: " + std::to_string(newWidth) + "x" + std::to_string(newHeight)).c_str());
+     }
 }
 
 void GdiPlusManager::ApplySepia()
@@ -259,7 +259,7 @@ void GdiPlusManager::ApplySepia()
             }
         }
 
-        Logger::logMessage("Applied sepia filter to the image.");
+        Application::log("Applied sepia filter to the image.");
     }
 }
 
