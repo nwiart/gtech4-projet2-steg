@@ -115,7 +115,7 @@ SaveResult Application::_saveImage()
 	path[0] = '\0';
 
 	// No open image.
-	Gdiplus::Bitmap* image = GdiPlusManager::getInstance().getImage();
+	Gdiplus::Bitmap* image = GdiPlusManager::getInstance().getGeneratedImage();
 	if (!image) {
 		return SaveResult::NOIMAGE;
 	}

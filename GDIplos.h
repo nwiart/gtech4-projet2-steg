@@ -2,6 +2,8 @@
 #include <windows.h>
 
 #include <gdiplus.h>
+#include <vector>
+#include <string>
 
 #pragma comment (lib, "Gdiplus.lib")
 
@@ -16,6 +18,19 @@ public:
 
     bool LoadImageFromFile(const char* filePath);
     void DrawImage(HDC hdc, int x, int y);
+    static std::vector<bool> GetMessageBits(const std::string& message);
+    static Gdiplus::Bitmap* EncodeMessage(const std::string& message);
+    static std::string BitsToMessage(const std::vector<bool>& bits);
+    static std::string DecodeMessage(Gdiplus::Bitmap* image);
+
+    inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
+
+    inline Gdiplus::Bitmap* getGeneratedImage() const { return generatedImage; }
+    inline void setGeneratedImage(Gdiplus::Bitmap* i) { generatedImage = i; }
+
+    void ApplyBlur(int radius);
+    void ResizeImage(int newWidth, int newHeight);
+    void ApplySepia();
 
     inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
     void ApplyBlur(int radius);
@@ -25,4 +40,5 @@ public:
 private:
     ULONG_PTR gdiplusToken;
     Gdiplus::Bitmap* loadedImage;
+    Gdiplus::Bitmap* generatedImage;
 };

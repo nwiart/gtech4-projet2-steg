@@ -198,10 +198,10 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 			Application::saveImage();
 			return 0;
 		case ID_BTN_ENCODE:
-			Application::log("Encode : Not implemented");
+			GdiPlusManager::EncodeMessage("This is a secret message\0");
 			return 0;
 		case ID_BTN_DECODE:
-			Application::log("Decode : Not implemented");
+			GdiPlusManager::DecodeMessage(GdiPlusManager::getInstance().getImage());
 			return 0;
 		case ID_BTN_CLEAR:
 			win->clearLog();
