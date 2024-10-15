@@ -18,6 +18,9 @@ public:
     void DrawImage(HDC hdc, int x, int y);
 
     inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
+    void ApplyBlur(int radius);
+    void ResizeImage(int newWidth, int newHeight);
+    void ApplySepia();
 
 private:
     ULONG_PTR gdiplusToken;
