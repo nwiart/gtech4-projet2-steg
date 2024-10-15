@@ -133,8 +133,9 @@ static void create(HWND hwnd)
 	hStats = CreateWindow("STATIC", "No loaded image.", WS_CHILD | WS_VISIBLE, 10, 250, 180, 200, hwnd, 0, 0, 0);
 
 	// Set steganography methods.
-	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"LSB Extended");
-	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"Matric Embedding");
+	for (int i = 0; i < (int) EncodeMethod::NUM_METHODS; i++) {
+		SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM) Application::getEncodeMethodString((EncodeMethod) i));
+	}
 	SendMessage(hComboMethod, CB_SETCURSEL, 0, 0);
 
 	// Set font globally.
@@ -149,6 +150,8 @@ static void create(HWND hwnd)
 
 static bool processMenuCommand(HWND hwnd, int code)
 {
+	int selectedMethod;
+
 	switch (code)
 	{
 	case ID_FILE_OPENIMAGE:
@@ -168,10 +171,12 @@ static bool processMenuCommand(HWND hwnd, int code)
 		Application::saveImage();
 		break;
 	case ID_BTN_ENCODE:
-		GdiPlusManager::EncodeMessage("This is a secret message\0");
+		selectedMethod = SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);
+		Application::encode((EncodeMethod) selectedMethod);
 		break;
 	case ID_BTN_DECODE:
-		GdiPlusManager::DecodeMessage(GdiPlusManager::getInstance().getImage());
+		selectedMethod = SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);
+		Application::decode((EncodeMethod) selectedMethod);
 		break;
 	case ID_BTN_CLEAR:
 		Window::getInstance().clearLog();

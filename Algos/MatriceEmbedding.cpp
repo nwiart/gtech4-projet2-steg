@@ -1,7 +1,10 @@
 #include "MatriceEmbedding.h"
 #include "Application.h"
 #include <bitset>
-#include <string>
+
+using namespace std;
+using namespace Gdiplus;
+
 
 static string StringToBinary(const string& message) {
     string binary = "";
@@ -11,11 +14,14 @@ static string StringToBinary(const string& message) {
     return binary;
 }
 
-void MatriceEmbedding::EmbedMessageInImage(Bitmap* bmp, const string& message) {
+void MatriceEmbedding::EmbedMessageInImage(const string& message) {
     string binaryMessage = StringToBinary(message);
     int dataIndex = 0;
     int dataLength = binaryMessage.length();
     bool complete = false;
+
+    Bitmap* bmp = GdiPlusManager::getInstance().getImage();
+    Bitmap* dest = new Gdiplus::Bitmap(bmp->GetWidth(), bmp->GetHeight());
 
     for (UINT y = 0; y < bmp->GetHeight(); ++y) {
         for (UINT x = 0; x < bmp->GetWidth(); ++x) {
@@ -42,7 +48,7 @@ void MatriceEmbedding::EmbedMessageInImage(Bitmap* bmp, const string& message) {
             }
 
             Color newColor(pixelColor.GetA(), red, green, blue);
-            bmp->SetPixel(x, y, newColor);
+            dest->SetPixel(x, y, newColor);
 
             if (dataIndex >= dataLength) {
                 complete = true;
@@ -57,6 +63,8 @@ void MatriceEmbedding::EmbedMessageInImage(Bitmap* bmp, const string& message) {
     else {
         Application::log("Message hidden perfectly");
     }
+
+    GdiPlusManager::getInstance().setGeneratedImage(dest);
 }
 
 string MatriceEmbedding::DecodeMessageFromImage(Bitmap* bmp, int messageLength) {

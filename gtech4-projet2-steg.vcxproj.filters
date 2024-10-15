@@ -30,7 +30,10 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MatriceEmbedding.cpp">
+    <ClCompile Include="Algos\MatriceEmbedding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Algos\LSB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +53,10 @@
     <ClInclude Include="Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MatriceEmbedding.h">
+    <ClInclude Include="Algos\MatriceEmbedding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Algos\LSB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

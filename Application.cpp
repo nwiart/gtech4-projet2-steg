@@ -4,6 +4,9 @@
 #include "GDIplos.h"
 #include "Logger.h"
 
+#include "Algos/LSB.h"
+#include "Algos/MatriceEmbedding.h"
+
 #include <Windows.h>
 
 #include <string>
@@ -147,6 +150,45 @@ SaveResult Application::_saveImage()
 	Application::log((std::string("Saved to \"") + (char*)path + "\"").c_str());
 
 	return SaveResult::OK;
+}
+
+
+void Application::encode(EncodeMethod m)
+{
+	switch (m)
+	{
+	case EncodeMethod::LSB:
+		LSB::EmbedMessageInImage("This is a secret message!");
+		break;
+	case EncodeMethod::MATRIX_EMBEDDING:
+		MatriceEmbedding::EmbedMessageInImage("This is a secret message (with matrix embed)!");
+		break;
+	}
+}
+
+void Application::decode(EncodeMethod m)
+{
+	std::string s;
+
+	switch (m)
+	{
+	case EncodeMethod::LSB:
+		s = LSB::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage(), 0);
+		break;
+	case EncodeMethod::MATRIX_EMBEDDING:
+		s = MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage(), 0);
+		break;
+	}
+}
+
+
+const char* Application::getEncodeMethodString(EncodeMethod r)
+{
+	switch (r)
+	{
+	case EncodeMethod::LSB: return "LSB";
+	case EncodeMethod::MATRIX_EMBEDDING: return "Matrix Embedding";
+	}
 }
 
 
