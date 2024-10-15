@@ -1,8 +1,8 @@
 #include <windows.h>
 #include "GdiPlos.h"
 #include <commdlg.h>
-#include <iostream>
 #include "Logger.h"
+#include "Application.h"
 
 
 GdiPlusManager& GdiPlusManager::getInstance()
@@ -15,7 +15,7 @@ GdiPlusManager::GdiPlusManager() : loadedImage(nullptr), generatedImage(nullptr)
 {
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
-    Logger::logMessage("GDI+ started successfully.");
+    Application::log("GDI+ started successfully.");
 }
 
 GdiPlusManager::~GdiPlusManager()
@@ -24,7 +24,7 @@ GdiPlusManager::~GdiPlusManager()
         delete loadedImage;
     }
     Gdiplus::GdiplusShutdown(gdiplusToken);
-    Logger::logMessage("GDI+ shutdown.");
+    Application::log("GDI+ shutdown.");
 }
 
 bool GdiPlusManager::LoadImageFromFile(const char* filePath)
@@ -43,13 +43,16 @@ bool GdiPlusManager::LoadImageFromFile(const char* filePath)
     loadedImage->GetPixel(0, 0, &col);
 
     if (loadedImage->GetLastStatus() == Gdiplus::Ok) {
-        Logger::logMessage(std::string("Image loaded successfully from: ") + filePath);
+        std::string logMessage = "Image loaded successfully from: " + std::string(filePath);
+        Application::log(logMessage.c_str());
         return true;
     }
     else {
-        Logger::logMessage(std::string("Failed to load image from: ") + filePath);
+        std::string logMessage = "Failed to load image from: " + std::string(filePath);
+        Application::log(logMessage.c_str());
         return false;
     }
+
 }
 
 void GdiPlusManager::DrawImage(HDC hdc, int x, int y)
@@ -58,10 +61,10 @@ void GdiPlusManager::DrawImage(HDC hdc, int x, int y)
         Gdiplus::Graphics graphics(hdc);
         graphics.DrawImage(loadedImage, x, y);
 
-        Logger::logMessage("Image drawn at position: (" + std::to_string(x) + ", " + std::to_string(y) + ")");
+        Application::log(("Image drawn at position: (" + std::to_string(x) + ", " + std::to_string(y) + ")").c_str());
     }
     else {
-        Logger::logMessage("Attempt to draw image failed. No image loaded.");
+        Application::log("Attempt to draw image failed. No image loaded.");
     }
 }
 
@@ -75,12 +78,11 @@ std::vector<bool> GdiPlusManager::GetMessageBits(const std::string& message) {
     return bits;
 }
 
-
 Gdiplus::Bitmap* GdiPlusManager::EncodeMessage(const std::string& message) {
     // Load the image
     Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(GdiPlusManager::getInstance().getImage()->GetWidth(), GdiPlusManager::getInstance().getImage()->GetHeight());
     if (!bitmap) {
-        Logger::logMessage("Failed to encode message!");
+        Application::log("Failed to encode message!");
         return bitmap;
     }
 
@@ -103,7 +105,7 @@ Gdiplus::Bitmap* GdiPlusManager::EncodeMessage(const std::string& message) {
         }
     }
 
-    Logger::logMessage("Encoded message: " + message);
+    Application::log(("Encoded message: " + message).c_str());
 
     GdiPlusManager::getInstance().generatedImage = bitmap;
     return bitmap;
@@ -129,7 +131,7 @@ std::string GdiPlusManager::DecodeMessage(Gdiplus::Bitmap* image) {
     Gdiplus::Bitmap* bitmap = image;
 
     if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
-        Logger::logMessage("Failed to load image");
+        Application::log("Failed to load image");
         return "";
     }
 
@@ -161,10 +163,24 @@ std::string GdiPlusManager::DecodeMessage(Gdiplus::Bitmap* image) {
     // Decode the bits into a message
     std::string message = BitsToMessage(messageBits);
 
-    Logger::logMessage("decoded message: " + message);
+    Application::log(("decoded message: " + message).c_str());
     return message;
 }
 
+void GdiPlusManager::ResizeImage(int newWidth, int newHeight)
+{
+    if (loadedImage) {
+        Gdiplus::Bitmap* resizedImage = new Gdiplus::Bitmap(newWidth, newHeight, loadedImage->GetPixelFormat());
+
+        Gdiplus::Graphics graphics(resizedImage);
+        graphics.DrawImage(loadedImage, 0, 0, newWidth, newHeight);
+
+        delete loadedImage;
+        loadedImage = resizedImage;
+
+        Application::log(("Resized image to: " + std::to_string(newWidth) + "x" + std::to_string(newHeight)).c_str());
+     }
+}
 
 void GdiPlusManager::ApplyBlur(int radius)
 {
@@ -202,22 +218,7 @@ void GdiPlusManager::ApplyBlur(int radius)
         delete loadedImage;
         loadedImage = blurredImage;
 
-        Logger::logMessage("Applied manual blur with radius: " + std::to_string(radius));
-    }
-}
-
-void GdiPlusManager::ResizeImage(int newWidth, int newHeight)
-{
-    if (loadedImage) {
-        Gdiplus::Bitmap* resizedImage = new Gdiplus::Bitmap(newWidth, newHeight, loadedImage->GetPixelFormat());
-
-        Gdiplus::Graphics graphics(resizedImage);
-        graphics.DrawImage(loadedImage, 0, 0, newWidth, newHeight);
-
-        delete loadedImage;
-        loadedImage = resizedImage;
-
-        Logger::logMessage("Resized image to: " + std::to_string(newWidth) + "x" + std::to_string(newHeight));
+        Application::log(("Applied manual blur with radius: " + std::to_string(radius)).c_str());
     }
 }
 
@@ -250,6 +251,8 @@ void GdiPlusManager::ApplySepia()
             }
         }
 
-        Logger::logMessage("Applied sepia filter to the image.");
+        Application::log("Applied sepia filter to the image.");
     }
 }
+
+

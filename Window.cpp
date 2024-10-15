@@ -62,6 +62,10 @@ void Window::init(const char* title)
 	m_hwnd = CreateWindow(wndClass, title, WS_OVERLAPPEDWINDOW, 20, 20, 800, 600, NULL, 0, 0, 0);
 	SetWindowLongPtr(m_hwnd, GWLP_USERDATA, (LONG_PTR) this);
 
+	// Register keyboard shortcuts.
+	RegisterHotKey(m_hwnd, ID_FILE_OPENIMAGE, MOD_CONTROL, 'O');
+	RegisterHotKey(m_hwnd, ID_FILE_SAVEIMAGE, MOD_CONTROL, 'S');
+
 	// Show automatically.
 	ShowWindow(m_hwnd, SW_SHOW);
 }
@@ -130,6 +134,7 @@ static void create(HWND hwnd)
 
 	// Set steganography methods.
 	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"LSB Extended");
+	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"Matric Embedding");
 	SendMessage(hComboMethod, CB_SETCURSEL, 0, 0);
 
 	// Set font globally.
@@ -140,6 +145,43 @@ static void create(HWND hwnd)
 	// Set mono font.
 	HFONT hFontMono = CreateFont(14, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Consolas");
 	SendMessage(hLog, WM_SETFONT, (WPARAM)hFontMono, 0);
+}
+
+static bool processMenuCommand(HWND hwnd, int code)
+{
+	switch (code)
+	{
+	case ID_FILE_OPENIMAGE:
+		Application::openImage();
+		break;
+	case ID_FILE_SAVEIMAGE:
+		Application::saveImage();
+		break;
+	case ID_FILE_EXIT:
+		DestroyWindow(hwnd);
+		break;
+
+	case ID_BTN_OPEN:
+		Application::openImage();
+		break;
+	case ID_BTN_SAVE:
+		Application::saveImage();
+		break;
+	case ID_BTN_ENCODE:
+		GdiPlusManager::EncodeMessage("This is a secret message\0");
+		break;
+	case ID_BTN_DECODE:
+		GdiPlusManager::DecodeMessage(GdiPlusManager::getInstance().getImage());
+		break;
+	case ID_BTN_CLEAR:
+		Window::getInstance().clearLog();
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
 }
 
 static void paint(HWND hwnd, HDC hdc)
@@ -178,35 +220,10 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 		MoveWindow(hBtnClear, 200, HIWORD(lparam) - 300 - 24, 80,                   24,  true);
 		return 0;
 
+	// Keyboard shortcuts and menu.
+	case WM_HOTKEY:
 	case WM_COMMAND:
-		switch (LOWORD(wparam))
-		{
-		case ID_FILE_OPENIMAGE:
-			Application::openImage();
-			return 0;
-		case ID_FILE_SAVEIMAGE:
-			Application::saveImage();
-			return 0;
-		case ID_FILE_EXIT:
-			DestroyWindow(hwnd);
-			return 0;
-
-		case ID_BTN_OPEN:
-			Application::openImage();
-			return 0;
-		case ID_BTN_SAVE:
-			Application::saveImage();
-			return 0;
-		case ID_BTN_ENCODE:
-			GdiPlusManager::EncodeMessage("This is a secret message\0");
-			//Application::log("Encode : Not implemented");
-			return 0;
-		case ID_BTN_DECODE:
-			GdiPlusManager::DecodeMessage(GdiPlusManager::getInstance().getImage());
-			//Application::log("Decode : Not implemented");
-			return 0;
-		case ID_BTN_CLEAR:
-			win->clearLog();
+		if (processMenuCommand(hwnd, LOWORD(wparam))) {
 			return 0;
 		}
 		break;
