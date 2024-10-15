@@ -165,8 +165,8 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 		((MINMAXINFO*) lparam)->ptMinTrackSize.y = 400;
 		return 0;
 	case WM_SIZE:
-		MoveWindow(hLog,      200, HIWORD(lparam) - 200,      LOWORD(lparam) - 200, 200, true);
-		MoveWindow(hBtnClear, 200, HIWORD(lparam) - 200 - 24, 80,                   24,  true);
+		MoveWindow(hLog,      200, HIWORD(lparam) - 300,      LOWORD(lparam) - 200, 300, true);
+		MoveWindow(hBtnClear, 200, HIWORD(lparam) - 300 - 24, 80,                   24,  true);
 		return 0;
 
 	case WM_COMMAND:

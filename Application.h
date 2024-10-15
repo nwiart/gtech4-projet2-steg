@@ -19,5 +19,12 @@ public:
 
 	static void openImage();
 
-	static SaveResult saveImage();
+	static void saveImage();
+
+
+	static const char* getSaveResultString(SaveResult r);
+
+private:
+
+	static SaveResult _saveImage();
 };

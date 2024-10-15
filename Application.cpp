@@ -88,8 +88,24 @@ void Application::openImage()
 	Application::log((std::string("Successfully opened \"") + path + "\"").c_str());
 }
 
+void Application::saveImage()
+{
+	SaveResult res = _saveImage();
+	if (res == SaveResult::OK) {
+		return;
+	}
+	if (res == SaveResult::ABORTED) {
+		Application::log(Application::getSaveResultString(SaveResult::ABORTED));
+		return;
+	}
 
-SaveResult Application::saveImage()
+	std::string msg = "Save failed : ";
+	msg += Application::getSaveResultString(res);
+	Application::log(msg.c_str());
+}
+
+
+SaveResult Application::_saveImage()
 {
 	HWND hwnd = Window::getInstance().getHwnd();
 	char path[MAX_PATH];
@@ -116,11 +132,30 @@ SaveResult Application::saveImage()
 
 	// Save.
 	CLSID encoderID;
-	if (!getEncoderByExtension(strchr(path, '.') + 1, &encoderID)) {
+	char* ext = strchr(path, '.');
+	if (!ext) {
+		return SaveResult::INVALIDEXT;
+	}
+	if (!getEncoderByExtension(ext + 1, &encoderID)) {
 		return SaveResult::INVALIDEXT;
 	}
 	mbstowcs(wpath, path, MAX_PATH);
 	image->Save(wpath, &encoderID);
 
+	Application::log((std::string("Saved to \"") + (char*)path + "\"").c_str());
+
 	return SaveResult::OK;
+}
+
+
+const char* Application::getSaveResultString(SaveResult r)
+{
+	switch (r)
+	{
+	case SaveResult::OK: return "";
+	case SaveResult::NOIMAGE: return "There is no image to save";
+	case SaveResult::ABORTED: return "Save aborted";
+	case SaveResult::INVALIDEXT: return "Invalid file name / file extension";
+	case SaveResult::FAILED: return "Unknown error";
+	}
 }
