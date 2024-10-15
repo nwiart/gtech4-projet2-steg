@@ -12,7 +12,8 @@
 #include <string>
 
 
-static char* messageBuffer = 0;
+static BinaryBuffer messageBuffer;
+static BinaryBuffer decodedBuffer;
 
 
 static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
@@ -127,13 +128,14 @@ void Application::openMessage()
 	size_t size = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	if (messageBuffer) {
-		free(messageBuffer);
-		messageBuffer = 0;
+	if (!messageBuffer.isEmpty()) {
+		free(messageBuffer.getData());
+		messageBuffer.clear();
 	}
 
-	messageBuffer = (char*) malloc(size);
-	fread(messageBuffer, size, 1, file);
+	unsigned char* buf = (unsigned char*) malloc(size);
+	fread(buf, size, 1, file);
+	messageBuffer = BinaryBuffer(buf, size);
 
 	fclose(file);
 
@@ -156,6 +158,11 @@ void Application::saveImage()
 	Application::log(msg.c_str());
 }
 
+void Application::saveMessage()
+{
+	SaveResult res = _saveMessage();
+}
+
 
 SaveResult Application::_saveImage()
 {
@@ -176,7 +183,7 @@ SaveResult Application::_saveImage()
 	ofn.hwndOwner = hwnd;
 	ofn.lpstrFile = path;
 	ofn.nMaxFile = sizeof(path);
-	ofn.lpstrFilter = "Images\0*.BMP;*.PNG;*.JPG;*.JPEG\0";
+	ofn.lpstrFilter = "PNG Image\0*.PNG\0JPEG Image\0*.JPG;*.JPEG\0";
 
 	if (!GetSaveFileName(&ofn)) {
 		return SaveResult::ABORTED;
@@ -199,15 +206,50 @@ SaveResult Application::_saveImage()
 	return SaveResult::OK;
 }
 
+SaveResult Application::_saveMessage()
+{
+	HWND hwnd = Window::getInstance().getHwnd();
+	char path[MAX_PATH];
+	path[0] = '\0';
+
+	// No data.
+	if (decodedBuffer.isEmpty()) {
+		return SaveResult::NOIMAGE;
+	}
+
+	// Open dialog for save destination.
+	OPENFILENAME ofn; ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = hwnd;
+	ofn.lpstrFile = path;
+	ofn.nMaxFile = sizeof(path);
+	ofn.lpstrFilter = "All\0*.*\0";
+
+	if (!GetSaveFileName(&ofn)) {
+		return SaveResult::ABORTED;
+	}
+
+	// Save.
+	FILE* file = fopen(path, "wb");
+	fwrite(decodedBuffer.getData(), decodedBuffer.getSize(), 1, file);
+	fclose(file);
+
+	Application::log((std::string("Saved to \"") + (char*)path + "\"").c_str());
+
+	return SaveResult::OK;
+}
+
 
 void Application::encode(EncodeMethod m)
 {
-	char msg[] = "This is a secret message!";
+	if (messageBuffer.isEmpty()) {
+		return;
+	}
 
 	switch (m)
 	{
 	case EncodeMethod::LSB:
-		LSB::EmbedMessageInImage(BinaryBuffer(msg, strlen(msg) + 1));
+		LSB::EmbedMessageInImage(messageBuffer);
 		break;
 	case EncodeMethod::MATRIX_EMBEDDING:
 		MatriceEmbedding::EmbedMessageInImage("This is a secret message (with matrix embed)!");
@@ -217,19 +259,20 @@ void Application::encode(EncodeMethod m)
 
 void Application::decode(EncodeMethod m)
 {
-	BinaryBuffer b;
+	if (decodedBuffer.getData()) {
+		free(decodedBuffer.getData());
+		decodedBuffer = BinaryBuffer();
+	}
 
 	switch (m)
 	{
 	case EncodeMethod::LSB:
-		b = LSB::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
+		decodedBuffer = LSB::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
 	case EncodeMethod::MATRIX_EMBEDDING:
 		MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
 	}
-
-	Application::log((const char*) b.getData());
 }
 
 

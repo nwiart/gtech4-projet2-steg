@@ -22,6 +22,7 @@ enum
 	ID_BTN_OPEN = 801,
 	ID_BTN_OPENMESSAGE,
 	ID_BTN_SAVE,
+	ID_BTN_SAVEMESSAGE,
 	ID_BTN_ENCODE,
 	ID_BTN_DECODE,
 	ID_BTN_CLEAR,
@@ -127,8 +128,9 @@ static void create(HWND hwnd)
 	CreateWindow("BUTTON", "Encode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  135, 80,  24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
 	CreateWindow("BUTTON", "Decode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 135, 80,  24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
 
-	CreateWindow("BUTTON", "3. Save the new image",  WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   180, 190, 60, hwnd, 0, 0, 0);
-	CreateWindow("BUTTON", "Save Result",            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  205, 170, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+	CreateWindow("BUTTON", "3. Save results",        WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   180, 190, 60, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Save Image",             WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  205, 80,  24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+	CreateWindow("BUTTON", "Save File",              WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 205, 80,  24, hwnd, (HMENU)ID_BTN_SAVEMESSAGE, 0, 0);
 
 	// Image & data stats.
 	hStats = CreateWindow("STATIC", "No loaded image.", WS_CHILD | WS_VISIBLE, 10, 250, 180, 200, hwnd, 0, 0, 0);
@@ -173,6 +175,9 @@ static bool processMenuCommand(HWND hwnd, int code)
 		break;
 	case ID_BTN_SAVE:
 		Application::saveImage();
+		break;
+	case ID_BTN_SAVEMESSAGE:
+		Application::saveMessage();
 		break;
 	case ID_BTN_ENCODE:
 		selectedMethod = SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);

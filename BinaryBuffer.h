@@ -15,7 +15,11 @@ public:
 	{
 	}
 
-	inline unsigned const char* getData() const { return m_buffer; }
+	inline void clear() { m_buffer = 0; m_size = 0; }
+
+	inline bool isEmpty() const { return m_size == 0; }
+
+	inline unsigned char* getData() const { return m_buffer; }
 	inline unsigned int getSize() const { return m_size; }
 
 

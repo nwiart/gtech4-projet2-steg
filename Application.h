@@ -27,6 +27,7 @@ public:
 	static void openImage();
 	static void openMessage();
 	static void saveImage();
+	static void saveMessage();
 
 	static void encode(EncodeMethod m);
 	static void decode(EncodeMethod m);
@@ -38,4 +39,5 @@ public:
 private:
 
 	static SaveResult _saveImage();
+	static SaveResult _saveMessage();
 };

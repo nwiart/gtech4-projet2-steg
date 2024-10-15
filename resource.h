@@ -10,6 +10,7 @@
 #define ID_EDIT_DECODE                  40005
 #define ID_FILE_SAVEIMAGE               40006
 #define ID_FILE_OPENMESSAGE             40007
+#define ID_FILE_SAVEMESSAGE             40008
 
 // Next default values for new objects
 // 
