@@ -81,7 +81,7 @@ void Window::repaintImages()
 	InvalidateRect(m_hwnd, 0, true);
 }
 
-static HWND hLog, hBtnClear;
+static HWND hLog, hBtnClear, hComboMethod, hStats;
 
 void Window::clearLog()
 {
@@ -110,18 +110,27 @@ static void create(HWND hwnd)
 	hLog = CreateWindow("EDIT", "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_BORDER, 10, 220, 180, 200, hwnd, 0, 0, 0);
 	SendMessage(hLog, EM_LIMITTEXT, 1*1024*1024, 0);
 
+	hBtnClear = CreateWindow("BUTTON", "Clear", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 130, 80, 24, hwnd, (HMENU)ID_BTN_CLEAR, 0, 0);
+
+	// Action buttons.
 	CreateWindow("BUTTON", "1. Load image and data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   10,  190, 60, hwnd, 0, 0, 0);
 	CreateWindow("BUTTON", "Open Image",             WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  35,  80,  24, hwnd, (HMENU)ID_BTN_OPEN, 0, 0);
 	CreateWindow("BUTTON", "Open File",              WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 35,  80,  24, hwnd, 0, 0, 0);
 
-	CreateWindow("BUTTON", "2. Process hidden data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   80,  190, 60, hwnd, 0, 0, 0);
-	CreateWindow("BUTTON", "Encode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  105, 80,  24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
-	CreateWindow("BUTTON", "Decode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 105, 80,  24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
+	CreateWindow("BUTTON", "2. Process hidden data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   80,  190, 90, hwnd, 0, 0, 0);
+	hComboMethod = CreateWindow("COMBOBOX", "",      WS_CHILD | WS_VISIBLE | WS_OVERLAPPED | CBS_DROPDOWN | CBS_HASSTRINGS, 15, 105, 170, 200, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Encode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  135, 80,  24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
+	CreateWindow("BUTTON", "Decode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 135, 80,  24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
 
-	CreateWindow("BUTTON", "3. Save the new image",  WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   150, 190, 60, hwnd, 0, 0, 0);
-	CreateWindow("BUTTON", "Save Result",            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  175, 170, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+	CreateWindow("BUTTON", "3. Save the new image",  WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   180, 190, 60, hwnd, 0, 0, 0);
+	CreateWindow("BUTTON", "Save Result",            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  205, 170, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
 
-	hBtnClear = CreateWindow("BUTTON", "Clear", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 10, 130, 80, 24, hwnd, (HMENU)ID_BTN_CLEAR, 0, 0);
+	// Image & data stats.
+	hStats = CreateWindow("STATIC", "No loaded image.", WS_CHILD | WS_VISIBLE, 10, 250, 180, 200, hwnd, 0, 0, 0);
+
+	// Set steganography methods.
+	SendMessage(hComboMethod, CB_ADDSTRING, 0, (LPARAM)"LSB Extended");
+	SendMessage(hComboMethod, CB_SETCURSEL, 0, 0);
 
 	// Set font globally.
 	HFONT hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
