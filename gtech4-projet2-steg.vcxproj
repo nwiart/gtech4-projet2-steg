@@ -135,12 +135,14 @@
     <ClCompile Include="GDIplos.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MatriceEmbedding.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="GDIplos.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="MatriceEmbedding.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
