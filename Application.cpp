@@ -5,6 +5,7 @@
 #include "Logger.h"
 
 #include "Algos/LSB.h"
+#include "Algos/LSBExtended.h"
 #include "Algos/MatriceEmbedding.h"
 
 #include <Windows.h>
@@ -251,6 +252,9 @@ void Application::encode(EncodeMethod m)
 	case EncodeMethod::LSB:
 		LSB::EmbedMessageInImage(messageBuffer);
 		break;
+	case EncodeMethod::LSB_EXTENDED:
+		LSBExtended::EmbedMessageInImage(messageBuffer);
+		break;
 	case EncodeMethod::MATRIX_EMBEDDING:
 		MatriceEmbedding::EmbedMessageInImage("This is a secret message (with matrix embed)!");
 		break;
@@ -269,6 +273,9 @@ void Application::decode(EncodeMethod m)
 	case EncodeMethod::LSB:
 		decodedBuffer = LSB::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
+	case EncodeMethod::LSB_EXTENDED:
+		decodedBuffer = LSBExtended::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
+		break;
 	case EncodeMethod::MATRIX_EMBEDDING:
 		MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
@@ -281,6 +288,7 @@ const char* Application::getEncodeMethodString(EncodeMethod r)
 	switch (r)
 	{
 	case EncodeMethod::LSB: return "LSB";
+	case EncodeMethod::LSB_EXTENDED: return "LSB (Extended)";
 	case EncodeMethod::MATRIX_EMBEDDING: return "Matrix Embedding";
 	}
 }

@@ -4,6 +4,7 @@
 enum class EncodeMethod
 {
 	LSB,
+	LSB_EXTENDED,
 	MATRIX_EMBEDDING,
 	NUM_METHODS
 };
