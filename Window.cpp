@@ -28,6 +28,9 @@ enum
 	ID_BTN_CLEAR,
 };
 
+static HWND hLog, hBtnClear, hComboMethod, hStats;
+static HFONT hFont, hFontMono;
+
 
 Window& Window::getInstance()
 {
@@ -87,7 +90,6 @@ void Window::repaintImages()
 	InvalidateRect(m_hwnd, 0, true);
 }
 
-static HWND hLog, hBtnClear, hComboMethod, hStats;
 
 void Window::clearLog()
 {
@@ -142,12 +144,12 @@ static void create(HWND hwnd)
 	SendMessage(hComboMethod, CB_SETCURSEL, 0, 0);
 
 	// Set font globally.
-	HFONT hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
+	hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 	SendMessage(hwnd, WM_SETFONT, (WPARAM)hFont, 0);
 	EnumChildWindows(hwnd, &setFont, (LPARAM)hFont);
 
 	// Set mono font.
-	HFONT hFontMono = CreateFont(14, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Consolas");
+	hFontMono = CreateFont(14, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Consolas");
 	SendMessage(hLog, WM_SETFONT, (WPARAM)hFontMono, 0);
 }
 
@@ -182,6 +184,7 @@ static bool processMenuCommand(HWND hwnd, int code)
 	case ID_BTN_ENCODE:
 		selectedMethod = SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);
 		Application::encode((EncodeMethod) selectedMethod);
+		Window::getInstance().repaintImages();
 		break;
 	case ID_BTN_DECODE:
 		selectedMethod = SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);
@@ -200,7 +203,44 @@ static bool processMenuCommand(HWND hwnd, int code)
 
 static void paint(HWND hwnd, HDC hdc)
 {
-	GdiPlusManager::getInstance().DrawImage(hdc, 200, 0);
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+
+	Gdiplus::Bitmap* srcImage = GdiPlusManager::getInstance().getImage();
+	Gdiplus::Bitmap* genImage = GdiPlusManager::getInstance().getGeneratedImage();
+
+	int availableWidth = (rect.right - rect.left) - 200;
+	int availableHeight = (rect.bottom - rect.top) - 300 - 24;
+
+	if (srcImage) {
+		int width  = availableWidth / 2;
+		int height = srcImage->GetHeight() * width / srcImage->GetWidth();
+		Gdiplus::Bitmap* resizedImage = GdiPlusManager::getInstance().ResizeImage(srcImage, width, height);
+
+		Gdiplus::Graphics g(hdc);
+		g.DrawImage(resizedImage, Gdiplus::RectF(200, 0, width, availableHeight), 0, 0, width, availableHeight, Gdiplus::UnitPixel);
+
+		HGDIOBJ prevFont = SelectObject(hdc, hFont);
+		TextOut(hdc, 200, 0, "Original", 8);
+		SelectObject(hdc, prevFont);
+
+		delete resizedImage;
+	}
+
+	if (genImage) {
+		int width  = availableWidth / 2;
+		int height = srcImage->GetHeight() * width / srcImage->GetWidth();
+		Gdiplus::Bitmap* resizedImage = GdiPlusManager::getInstance().ResizeImage(genImage, width, height);
+
+		Gdiplus::Graphics g(hdc);
+		g.DrawImage(resizedImage, Gdiplus::RectF(200 + availableWidth / 2, 0, width, availableHeight), 0, 0, width, availableHeight, Gdiplus::UnitPixel);
+
+		HGDIOBJ prevFont = SelectObject(hdc, hFont);
+		TextOut(hdc, 200 + availableWidth / 2, 0, "Stego", 8);
+		SelectObject(hdc, prevFont);
+
+		delete resizedImage;
+	}
 }
 
 
@@ -232,6 +272,7 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 	case WM_SIZE:
 		MoveWindow(hLog,      200, HIWORD(lparam) - 300,      LOWORD(lparam) - 200, 300, true);
 		MoveWindow(hBtnClear, 200, HIWORD(lparam) - 300 - 24, 80,                   24,  true);
+		InvalidateRect(hwnd, 0, true);
 		return 0;
 
 	// Keyboard shortcuts and menu.

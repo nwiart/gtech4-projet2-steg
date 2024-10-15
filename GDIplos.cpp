@@ -65,19 +65,18 @@ void GdiPlusManager::DrawImage(HDC hdc, int x, int y)
 }
 
 
-void GdiPlusManager::ResizeImage(int newWidth, int newHeight)
+Gdiplus::Bitmap* GdiPlusManager::ResizeImage(Gdiplus::Bitmap* bmp, int newWidth, int newHeight)
 {
-    if (loadedImage) {
-        Gdiplus::Bitmap* resizedImage = new Gdiplus::Bitmap(newWidth, newHeight, loadedImage->GetPixelFormat());
+    if (!bmp) {
+        return 0;
+    }
 
-        Gdiplus::Graphics graphics(resizedImage);
-        graphics.DrawImage(loadedImage, 0, 0, newWidth, newHeight);
+    Gdiplus::Bitmap* resizedImage = new Gdiplus::Bitmap(newWidth, newHeight, bmp->GetPixelFormat());
 
-        delete loadedImage;
-        loadedImage = resizedImage;
+    Gdiplus::Graphics graphics(resizedImage);
+    graphics.DrawImage(bmp, 0, 0, newWidth, newHeight);
 
-        Application::log(("Resized image to: " + std::to_string(newWidth) + "x" + std::to_string(newHeight)).c_str());
-     }
+    return resizedImage;
 }
 
 void GdiPlusManager::ApplyBlur(int radius)
