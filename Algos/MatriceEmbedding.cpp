@@ -65,7 +65,7 @@ void MatriceEmbedding::EmbedMessageInImage(const string& message) {
     GdiPlusManager::getInstance().setGeneratedImage(dest);
 }
 
-string MatriceEmbedding::DecodeMessageFromImage(Bitmap* bmp, int messageLength) {
+string MatriceEmbedding::DecodeMessageFromImage(Bitmap* bmp) {
     string binaryMessage = "";
     int bitCount = 0;
 
@@ -80,18 +80,13 @@ string MatriceEmbedding::DecodeMessageFromImage(Bitmap* bmp, int messageLength) 
 
             binaryMessage += (red & 0x01) ? '1' : '0';
             ++bitCount;
-            if (bitCount >= messageLength * 8) break;
 
             binaryMessage += (green & 0x01) ? '1' : '0';
             ++bitCount;
-            if (bitCount >= messageLength * 8) break;
 
             binaryMessage += (blue & 0x01) ? '1' : '0';
             ++bitCount;
-            if (bitCount >= messageLength * 8) break;
         }
-
-        if (bitCount >= messageLength * 8) break;
     }
 
     string decodedMessage = "";

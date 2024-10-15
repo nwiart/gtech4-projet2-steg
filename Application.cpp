@@ -176,7 +176,7 @@ void Application::decode(EncodeMethod m)
 		s = LSB::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage(), 0);
 		break;
 	case EncodeMethod::MATRIX_EMBEDDING:
-		s = MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage(), 0);
+		s = MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
 	}
 }

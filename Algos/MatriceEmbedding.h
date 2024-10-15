@@ -7,5 +7,5 @@
 class MatriceEmbedding {
 public:
     static void EmbedMessageInImage(const std::string& message);
-    static std::string DecodeMessageFromImage(Gdiplus::Bitmap* bmp, int messageLength);
+    static std::string DecodeMessageFromImage(Gdiplus::Bitmap* bmp);
 };
