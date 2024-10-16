@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BinaryBuffer.h"
+
 
 enum class EncodeMethod
 {
@@ -32,6 +34,10 @@ public:
 
 	static void encode(EncodeMethod m);
 	static void decode(EncodeMethod m);
+
+
+	static const BinaryBuffer& getSelectedMessage();
+	static const BinaryBuffer& getDecodedMessage();
 
 
 	static const char* getEncodeMethodString(EncodeMethod r);

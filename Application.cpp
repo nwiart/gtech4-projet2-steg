@@ -301,6 +301,17 @@ void Application::decode(EncodeMethod m)
 }
 
 
+const BinaryBuffer& Application::getSelectedMessage()
+{
+	return messageBuffer;
+}
+
+const BinaryBuffer& Application::getDecodedMessage()
+{
+	return decodedBuffer;
+}
+
+
 const char* Application::getEncodeMethodString(EncodeMethod r)
 {
 	switch (r)
