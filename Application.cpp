@@ -224,15 +224,33 @@ SaveResult Application::_saveMessage()
 	ofn.hwndOwner = hwnd;
 	ofn.lpstrFile = path;
 	ofn.nMaxFile = sizeof(path);
-	ofn.lpstrFilter = "All\0*.*\0";
+	ofn.lpstrFilter = "Text file\0*.TXT\0All\0*.*\0";
 
 	if (!GetSaveFileName(&ofn)) {
 		return SaveResult::ABORTED;
 	}
 
 	// Save.
+	bool isText = false;
+
+	char* ext = strchr(path, '.');
+	if (ofn.nFilterIndex == 1 || (ext && strcmp(ext + 1, "txt") == 0)) {
+		isText = true;
+		strcat(path, ".txt");
+	}
+
 	FILE* file = fopen(path, "wb");
-	fwrite(decodedBuffer.getData(), decodedBuffer.getSize(), 1, file);
+
+	// Interpret decoded data as text.
+	if (isText) {
+		int len = strlen((const char*) decodedBuffer.getData());
+		fwrite(decodedBuffer.getData(), len, 1, file);
+	}
+	// Just dump binary.
+	else {
+		fwrite(decodedBuffer.getData(), decodedBuffer.getSize(), 1, file);
+	}
+
 	fclose(file);
 
 	Application::log((std::string("Saved to \"") + (char*)path + "\"").c_str());
