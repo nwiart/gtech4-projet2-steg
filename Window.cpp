@@ -7,6 +7,8 @@
 
 #include "resource.h"
 
+#include <sstream>
+
 
 // Visual styles.
 #pragma comment(linker,"\"/manifestdependency:type='win32' \
@@ -22,10 +24,15 @@ enum
 	ID_BTN_OPEN = 801,
 	ID_BTN_OPENMESSAGE,
 	ID_BTN_SAVE,
+	ID_BTN_SAVEMESSAGE,
 	ID_BTN_ENCODE,
 	ID_BTN_DECODE,
 	ID_BTN_CLEAR,
 };
+
+static HWND hBtnEncode, hBtnDecode, hBtnSaveImage, hBtnSaveMessage, hComboMethod, hStats;
+static HWND hLog, hBtnClear;
+static HFONT hFont, hFontMono;
 
 
 Window& Window::getInstance()
@@ -67,6 +74,8 @@ void Window::init(const char* title)
 	RegisterHotKey(m_hwnd, ID_FILE_OPENIMAGE, MOD_CONTROL, 'O');
 	RegisterHotKey(m_hwnd, ID_FILE_SAVEIMAGE, MOD_CONTROL, 'S');
 
+	updateStats();
+
 	// Show automatically.
 	ShowWindow(m_hwnd, SW_SHOW);
 }
@@ -86,7 +95,52 @@ void Window::repaintImages()
 	InvalidateRect(m_hwnd, 0, true);
 }
 
-static HWND hLog, hBtnClear, hComboMethod, hStats;
+
+void Window::updateStats()
+{
+	EncodeMethod method = (EncodeMethod) SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);
+
+	Gdiplus::Bitmap* srcImage = GdiPlusManager::getInstance().getImage();
+	Gdiplus::Bitmap* dstImage = GdiPlusManager::getInstance().getGeneratedImage();
+	const BinaryBuffer& srcBuffer = Application::getSelectedMessage();
+	const BinaryBuffer& dstBuffer = Application::getDecodedMessage();
+
+	const int maximumBytes = srcImage ? Application::getMaximumBytes(method, srcImage->GetWidth(), srcImage->GetHeight()) : 0;
+	const bool dataTooLarge = srcBuffer.getSize() > maximumBytes;
+	const bool canEncode = (srcImage != 0 && !srcBuffer.isEmpty() && !dataTooLarge);
+	const bool canDecode = (srcImage != 0);
+
+	// Enable / disable buttons.
+	EnableWindow(hBtnEncode, canEncode);
+	EnableWindow(hBtnDecode, canDecode);
+	EnableWindow(hBtnSaveImage, dstImage != 0);
+	EnableWindow(hBtnSaveMessage, !dstBuffer.isEmpty());
+
+	// Stats text formatting.
+	std::stringstream stats;
+	stats << "Selected image :\n";
+	if (srcImage) {
+		stats << srcImage->GetWidth() << 'x' << std::to_string(srcImage->GetHeight()) << '\n';
+		stats << maximumBytes << " maximum bytes.\n";
+	}
+	else {
+		stats << "No loaded image.\n";
+	}
+	stats << '\n';
+	stats << "Selected message :\n";
+	if (!srcBuffer.isEmpty()) {
+		stats << srcBuffer.getSize() << " bytes.\n";
+		if (dataTooLarge) {
+			stats << "Data is too large!\n";
+		}
+	}
+	else {
+		stats << "No loaded message.\n";
+	}
+
+	SetWindowText(hStats, stats.str().c_str());
+}
+
 
 void Window::clearLog()
 {
@@ -124,11 +178,12 @@ static void create(HWND hwnd)
 
 	CreateWindow("BUTTON", "2. Process hidden data", WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   80,  190, 90, hwnd, 0, 0, 0);
 	hComboMethod = CreateWindow("COMBOBOX", "",      WS_CHILD | WS_VISIBLE | WS_OVERLAPPED | CBS_DROPDOWN | CBS_HASSTRINGS, 15, 105, 170, 200, hwnd, 0, 0, 0);
-	CreateWindow("BUTTON", "Encode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  135, 80,  24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
-	CreateWindow("BUTTON", "Decode",                 WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 135, 80,  24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
+	hBtnEncode   = CreateWindow("BUTTON", "Encode",  WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  135, 80,  24, hwnd, (HMENU)ID_BTN_ENCODE, 0, 0);
+	hBtnDecode   = CreateWindow("BUTTON", "Decode",  WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 135, 80,  24, hwnd, (HMENU)ID_BTN_DECODE, 0, 0);
 
-	CreateWindow("BUTTON", "3. Save the new image",  WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   180, 190, 60, hwnd, 0, 0, 0);
-	CreateWindow("BUTTON", "Save Result",            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  205, 170, 24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+	CreateWindow("BUTTON", "3. Save results",        WS_CHILD | WS_VISIBLE | WS_GROUP | BS_GROUPBOX, 5,   180, 190, 60, hwnd, 0, 0, 0);
+	hBtnSaveImage   = CreateWindow("BUTTON", "Save Image", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       15,  205, 80,  24, hwnd, (HMENU)ID_BTN_SAVE, 0, 0);
+	hBtnSaveMessage = CreateWindow("BUTTON", "Save File",  WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,       105, 205, 80,  24, hwnd, (HMENU)ID_BTN_SAVEMESSAGE, 0, 0);
 
 	// Image & data stats.
 	hStats = CreateWindow("STATIC", "No loaded image.", WS_CHILD | WS_VISIBLE, 10, 250, 180, 200, hwnd, 0, 0, 0);
@@ -140,12 +195,12 @@ static void create(HWND hwnd)
 	SendMessage(hComboMethod, CB_SETCURSEL, 0, 0);
 
 	// Set font globally.
-	HFONT hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
+	hFont = CreateFont(16, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Segoe UI");
 	SendMessage(hwnd, WM_SETFONT, (WPARAM)hFont, 0);
 	EnumChildWindows(hwnd, &setFont, (LPARAM)hFont);
 
 	// Set mono font.
-	HFONT hFontMono = CreateFont(14, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Consolas");
+	hFontMono = CreateFont(14, 0, 0, 0, FW_REGULAR, false, false, false, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Consolas");
 	SendMessage(hLog, WM_SETFONT, (WPARAM)hFontMono, 0);
 }
 
@@ -167,20 +222,28 @@ static bool processMenuCommand(HWND hwnd, int code)
 
 	case ID_BTN_OPEN:
 		Application::openImage();
+		Window::getInstance().updateStats();
 		break;
 	case ID_BTN_OPENMESSAGE:
 		Application::openMessage();
+		Window::getInstance().updateStats();
 		break;
 	case ID_BTN_SAVE:
 		Application::saveImage();
 		break;
+	case ID_BTN_SAVEMESSAGE:
+		Application::saveMessage();
+		break;
 	case ID_BTN_ENCODE:
 		selectedMethod = SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);
 		Application::encode((EncodeMethod) selectedMethod);
+		Window::getInstance().repaintImages();
+		Window::getInstance().updateStats();
 		break;
 	case ID_BTN_DECODE:
 		selectedMethod = SendMessage(hComboMethod, CB_GETCURSEL, 0, 0);
 		Application::decode((EncodeMethod) selectedMethod);
+		Window::getInstance().updateStats();
 		break;
 	case ID_BTN_CLEAR:
 		Window::getInstance().clearLog();
@@ -195,7 +258,44 @@ static bool processMenuCommand(HWND hwnd, int code)
 
 static void paint(HWND hwnd, HDC hdc)
 {
-	GdiPlusManager::getInstance().DrawImage(hdc, 200, 0);
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+
+	Gdiplus::Bitmap* srcImage = GdiPlusManager::getInstance().getImage();
+	Gdiplus::Bitmap* genImage = GdiPlusManager::getInstance().getGeneratedImage();
+
+	int availableWidth = (rect.right - rect.left) - 200;
+	int availableHeight = (rect.bottom - rect.top) - 300 - 24;
+
+	if (srcImage) {
+		int width  = availableWidth / 2;
+		int height = srcImage->GetHeight() * width / srcImage->GetWidth();
+		Gdiplus::Bitmap* resizedImage = GdiPlusManager::getInstance().ResizeImage(srcImage, width, height);
+
+		Gdiplus::Graphics g(hdc);
+		g.DrawImage(resizedImage, Gdiplus::RectF(200, 0, width, availableHeight), 0, 0, width, availableHeight, Gdiplus::UnitPixel);
+
+		HGDIOBJ prevFont = SelectObject(hdc, hFont);
+		TextOut(hdc, 200, 0, "Original", 8);
+		SelectObject(hdc, prevFont);
+
+		delete resizedImage;
+	}
+
+	if (genImage) {
+		int width  = availableWidth / 2;
+		int height = srcImage->GetHeight() * width / srcImage->GetWidth();
+		Gdiplus::Bitmap* resizedImage = GdiPlusManager::getInstance().ResizeImage(genImage, width, height);
+
+		Gdiplus::Graphics g(hdc);
+		g.DrawImage(resizedImage, Gdiplus::RectF(200 + availableWidth / 2, 0, width, availableHeight), 0, 0, width, availableHeight, Gdiplus::UnitPixel);
+
+		HGDIOBJ prevFont = SelectObject(hdc, hFont);
+		TextOut(hdc, 200 + availableWidth / 2, 0, "Stego", 8);
+		SelectObject(hdc, prevFont);
+
+		delete resizedImage;
+	}
 }
 
 
@@ -227,12 +327,17 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 	case WM_SIZE:
 		MoveWindow(hLog,      200, HIWORD(lparam) - 300,      LOWORD(lparam) - 200, 300, true);
 		MoveWindow(hBtnClear, 200, HIWORD(lparam) - 300 - 24, 80,                   24,  true);
+		InvalidateRect(hwnd, 0, true);
 		return 0;
 
 	// Keyboard shortcuts and menu.
 	case WM_HOTKEY:
 	case WM_COMMAND:
-		if (processMenuCommand(hwnd, LOWORD(wparam))) {
+		if (HIWORD(wparam) == CBN_SELCHANGE) {
+			win->updateStats();
+			return 0;
+		}
+		else if (processMenuCommand(hwnd, LOWORD(wparam))) {
 			return 0;
 		}
 		break;

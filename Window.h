@@ -22,6 +22,9 @@ public:
 	// Invalidates the images region to force redraw.
 	void repaintImages();
 
+	// Updates the statistics and buttons to encode, if the selected data is too large.
+	void updateStats();
+
 	void clearLog();
 	void appendLogLine(const char* msg);
 

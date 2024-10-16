@@ -24,8 +24,8 @@ public:
     inline Gdiplus::Bitmap* getGeneratedImage() const { return generatedImage; }
     inline void setGeneratedImage(Gdiplus::Bitmap* i) { generatedImage = i; }
 
+    Gdiplus::Bitmap* ResizeImage(Gdiplus::Bitmap* bmp, int newWidth, int newHeight);
     void ApplyBlur(int radius);
-    void ResizeImage(int newWidth, int newHeight);
     void ApplySepia();
 
 private:

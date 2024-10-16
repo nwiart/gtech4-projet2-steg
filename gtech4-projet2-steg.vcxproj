@@ -134,6 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Algos\LSB.cpp" />
+    <ClCompile Include="Algos\LSBExtended.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="GDIplos.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -143,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algos\LSB.h" />
+    <ClInclude Include="Algos\LSBExtended.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="BinaryBuffer.h" />
     <ClInclude Include="GDIplos.h" />
