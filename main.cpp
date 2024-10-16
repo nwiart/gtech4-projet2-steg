@@ -12,8 +12,6 @@ int main()
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif
 {
-	ResAnalysis::GetInstance().GenerateImages();
-
 	Window& window = Window::getInstance();
 
 	window.init("NoPeek for Windows");

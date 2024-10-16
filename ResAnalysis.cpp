@@ -1,176 +1,96 @@
 #include "ResAnalysis.h"
 #include "Application.h"
+#include "GDIplos.h"
 #include <random>
 #include <cmath>
+#include <iostream>
+#include <vector>
+#include <string>
 using namespace Gdiplus;
 
 ResAnalysis& ResAnalysis::GetInstance() {
-	static ResAnalysis instance;
-	return instance;
+    static ResAnalysis instance;
+    return instance;
 }
 
-ResAnalysis::ResAnalysis()
-{
-	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
-	Application::log("GDI+ started successfully.");
+ResAnalysis::ResAnalysis() {
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr);
+    Application::log("GDI+ started successfully.");
 }
 
-ResAnalysis::~ResAnalysis()
-{
+ResAnalysis::~ResAnalysis() {
+    // Shutdown GDI+
+    GdiplusShutdown(gdiplusToken);
 }
 
-static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
-{
-    UINT  num = 0;          // number of image encoders
-    UINT  size = 0;         // size of the image encoder array in bytes
+std::string ConvertWCharToChar(const WCHAR* wstr) {
+    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+    std::string str(sizeNeeded, 0);
+    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, &str[0], sizeNeeded, NULL, NULL);
+    return str;
+}
 
-    Gdiplus::ImageCodecInfo* pImageCodecInfo = NULL;
+void ResAnalysis::AnalyseHistogram() {
+    
+    Bitmap* bmp = GdiPlusManager::getInstance().getImage();
 
-    Gdiplus::GetImageEncodersSize(&num, &size);
-    if (size == 0)
-        return -1;  // Failure
+    if (!bmp) {
+        Application::log("Error: Invalid bitmap pointer!");
+        return;
+    }
 
-    pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
-    if (pImageCodecInfo == NULL)
-        return -1;  // Failure
+    // Create a histogram array
+    const int histogramSize = 256;
+    std::vector<int> histogram(histogramSize, 0);
 
-    Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
-
-    for (UINT j = 0; j < num; ++j)
-    {
-        if (wcscmp(pImageCodecInfo[j].MimeType, format) == 0)
-        {
-            *pClsid = pImageCodecInfo[j].Clsid;
-            free(pImageCodecInfo);
-            return j;  // Success
+    for (UINT y = 0; y < bmp->GetHeight(); ++y) {
+        for (UINT x = 0; x < bmp->GetWidth(); ++x) {
+            Color color;
+            bmp->GetPixel(x, y, &color);
+            int grayValue = (color.GetR() + color.GetG() + color.GetB()) / 3; // Convert to grayscale
+            histogram[grayValue]++;
         }
     }
 
-    free(pImageCodecInfo);
-    return -1;  // Failure
+    for (int i = 0; i < histogramSize; ++i) {
+        WCHAR logMessage[100];
+        swprintf(logMessage, 100, L"Pixel value %d: %d", i, histogram[i]);
+        Application::log(ConvertWCharToChar(logMessage).c_str());
+    }
 }
 
-BYTE Clamp(int value) {
-	if (value < 0) return 0;
-	if (value > 255) return 255;
-	return static_cast<BYTE>(value);
-}
+std::string ResAnalysis::ExtractLSB() {
+    Bitmap* bmp = GdiPlusManager::getInstance().getImage();
 
-bool ResAnalysis::AddNoise(double mean, double stddev) {
-
-    Gdiplus::Bitmap* src = Bitmap::FromFile(L"Test.png", false);
-
-    if (!src) {
-        Application::log("Failed to get image");
-        return false;
+    if (!bmp) {
+        Application::log("Error: Invalid bitmap pointer!");
+        return "";
     }
 
-    // Random number generator for Gaussian distribution
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(mean, stddev);
+    std::string hiddenMessage;
+    const int messageTerminationLength = 8;
+    int terminationCount = 0;
 
-    // Lock the bitmap for pixel manipulation
-    BitmapData bitmapData;
-    Rect rect(0, 0, src->GetWidth(), src->GetHeight());
+    // Get pixel data
+    for (UINT y = 0; y < bmp->GetHeight(); ++y) {
+        for (UINT x = 0; x < bmp->GetWidth(); ++x) {
+            Color color;
+            bmp->GetPixel(x, y, &color);
 
-    if (src->LockBits(&rect, ImageLockModeWrite, PixelFormat32bppARGB, &bitmapData) == Ok) {
-        BYTE* pixels = static_cast<BYTE*>(bitmapData.Scan0);
-        int stride = bitmapData.Stride;
+            // B
+            hiddenMessage += std::to_string(color.GetB() & 1);
 
-        // Loop through each pixel
-        for (UINT y = 0; y < src->GetHeight(); ++y) {
-            for (UINT x = 0; x < src->GetWidth(); ++x) {
-                int index = y * stride + x * 4; // 4 bytes per pixel (ARGB)
-
-                // Generate Gaussian noise for each color channel
-                int noiseR = static_cast<int>(distribution(generator));
-                int noiseG = static_cast<int>(distribution(generator));
-                int noiseB = static_cast<int>(distribution(generator));
-
-                // Add noise and clamp values to stay within [0, 255]
-                pixels[index + 2] = Clamp(pixels[index + 2] + noiseR); // R
-                pixels[index + 1] = Clamp(pixels[index + 1] + noiseG); // G
-                pixels[index + 0] = Clamp(pixels[index + 0] + noiseB); // B
+            if (hiddenMessage.length() >= messageTerminationLength) {
+                // Check if the last 8 bits are 00000000
+                if (hiddenMessage.substr(hiddenMessage.length() - messageTerminationLength) == "00000000") {
+                    return hiddenMessage;
+                }
             }
         }
-
-        // Unlock the bitmap
-        src->UnlockBits(&bitmapData);
     }
 
-    CLSID clsid;
-    CLSIDFromString(L"{557CF406-1A04-11D3-9A73-0000F81EF32E}", &clsid);
-    src->Save(L"output_with_noise.png", &clsid, nullptr);
-
-    Application::log("Image generated successfully with noise");
-    return true;
+    // If no termination found, return the hidden message anyway
+    return hiddenMessage;
 }
 
-bool ResAnalysis::AddCompression(ULONG quality) { //50 by default
-
-    Gdiplus::Bitmap* src = Bitmap::FromFile(L"Test.png", false);
-
-    if (!src) {
-        Application::log("Failed to get image");
-        return false;
-    }
-
-
-    if (quality > 100) quality = 100;
-    if (quality < 0) quality = 0;
-
-    // Get the JPEG encoder CLSID
-    CLSID jpegClsid;
-    if (GetEncoderClsid(L"image/jpeg", &jpegClsid) == -1) {
-        Application::log("JPEG encoder not found");
-        return false;
-    }
-
-    // Set the quality parameter
-    EncoderParameters encoderParameters;
-    encoderParameters.Count = 1;
-    encoderParameters.Parameter[0].Guid = EncoderQuality;
-    encoderParameters.Parameter[0].Type = EncoderParameterValueTypeLong;
-    encoderParameters.Parameter[0].NumberOfValues = 1;
-    encoderParameters.Parameter[0].Value = &quality;
-
-    // Create a memory stream to save the compressed image
-    IStream* stream = nullptr;
-    HRESULT hr = CreateStreamOnHGlobal(NULL, TRUE, &stream);
-    if (FAILED(hr) || stream == nullptr) {
-        Application::log("Failed to create memory stream");
-        return false;
-    }
-
-    // Save the image to the stream with the specified compression level
-    Status status = src->Save(stream, &jpegClsid, &encoderParameters);
-    if (status != Ok) {
-        Application::log("Failed to save the image to the stream");
-        stream->Release();
-        return false;
-    }
-
-    // Load the compressed image from the stream into a new bitmap
-    Bitmap* compressedBitmap = new Bitmap(stream);
-    if (compressedBitmap->GetLastStatus() != Ok) {
-        Application::log("Failed to create compressed bitmap from stream");
-        delete compressedBitmap;
-        stream->Release();
-        return false;
-    }
-
-    CLSID clsid;
-    CLSIDFromString(L"{557CF406-1A04-11D3-9A73-0000F81EF32E}", &clsid);
-    src->Save(L"output_with_Compression.png", &clsid, nullptr);
-
-    // Clean up
-    stream->Release();
-    Application::log("Image generated successfully with compression quality: " + quality);
-    return true;
-}
-
-void ResAnalysis::GenerateImages() {
-    ResAnalysis::AddNoise(0.0, 20.0);
-    ResAnalysis::AddCompression(50);
-}

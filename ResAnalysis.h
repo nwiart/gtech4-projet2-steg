@@ -1,6 +1,5 @@
 #pragma once
 #include <windows.h>
-
 #include <gdiplus.h>
 #include <vector>
 #include <string>
@@ -10,17 +9,14 @@
 class ResAnalysis
 {
 public:
-	static ResAnalysis& GetInstance();
+    static ResAnalysis& GetInstance();
 
-	ResAnalysis();
-	~ResAnalysis();
+    ResAnalysis();
+    ~ResAnalysis();
 
-	static bool AddNoise(double mean, double stddev);
-	static bool AddCompression(ULONG quality);
+    void AnalyseHistogram();
+    std::string ExtractLSB();
 
-
-	void GenerateImages();
 private:
-	ULONG_PTR gdiplusToken;
+    ULONG_PTR gdiplusToken; // Store GDI+ token
 };
-
