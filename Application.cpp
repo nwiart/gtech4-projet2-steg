@@ -301,6 +301,21 @@ void Application::decode(EncodeMethod m)
 }
 
 
+int Application::getMaximumBytes(EncodeMethod m, int width, int height)
+{
+	switch (m)
+	{
+	case EncodeMethod::LSB:
+		return (width * height * 3) / 8;
+	case EncodeMethod::LSB_EXTENDED:
+		return (width * height);
+	case EncodeMethod::MATRIX_EMBEDDING:
+		return 0; // TODO : implement.
+	default:
+		return 0;
+	}
+}
+
 const BinaryBuffer& Application::getSelectedMessage()
 {
 	return messageBuffer;

@@ -105,7 +105,7 @@ void Window::updateStats()
 	const BinaryBuffer& srcBuffer = Application::getSelectedMessage();
 	const BinaryBuffer& dstBuffer = Application::getDecodedMessage();
 
-	const int maximumBytes = 0;
+	const int maximumBytes = srcImage ? Application::getMaximumBytes(method, srcImage->GetWidth(), srcImage->GetHeight()) : 0;
 	const bool dataTooLarge = srcBuffer.getSize() > maximumBytes;
 	const bool canEncode = (srcImage != 0 && !srcBuffer.isEmpty() && !dataTooLarge);
 	const bool canDecode = (srcImage != 0);
@@ -120,8 +120,8 @@ void Window::updateStats()
 	std::stringstream stats;
 	stats << "Selected image :\n";
 	if (srcImage) {
-		stats << srcImage->GetWidth() << 'x' << std::to_string(srcImage->GetHeight());
-		stats << " (maximum ? bytes).\n";
+		stats << srcImage->GetWidth() << 'x' << std::to_string(srcImage->GetHeight()) << '\n';
+		stats << maximumBytes << " maximum bytes.\n";
 	}
 	else {
 		stats << "No loaded image.\n";

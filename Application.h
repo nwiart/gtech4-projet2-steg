@@ -36,6 +36,8 @@ public:
 	static void decode(EncodeMethod m);
 
 
+	static int getMaximumBytes(EncodeMethod m, int width, int height);
+
 	static const BinaryBuffer& getSelectedMessage();
 	static const BinaryBuffer& getDecodedMessage();
 
