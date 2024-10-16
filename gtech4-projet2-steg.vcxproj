@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Algos\F5.cpp" />
     <ClCompile Include="Algos\LSB.cpp" />
     <ClCompile Include="Algos\LSBExtended.cpp" />
     <ClCompile Include="Application.cpp" />
@@ -143,6 +144,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Algos\F5.h" />
     <ClInclude Include="Algos\LSB.h" />
     <ClInclude Include="Algos\LSBExtended.h" />
     <ClInclude Include="Application.h" />
