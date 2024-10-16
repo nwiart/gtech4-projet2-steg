@@ -77,6 +77,13 @@ Gdiplus::Bitmap* GdiPlusManager::ResizeImage(Gdiplus::Bitmap* bmp, int newWidth,
     return resizedImage;
 }
 
+void GdiPlusManager::ApplyResize(int newWidth, int newHeight)
+{
+    Gdiplus::Bitmap* bmp = ResizeImage(loadedImage, newWidth, newHeight);
+    delete loadedImage;
+    loadedImage = bmp;
+}
+
 void GdiPlusManager::ApplyBlur(int radius)
 {
     if (!loadedImage) {

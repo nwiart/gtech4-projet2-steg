@@ -224,10 +224,17 @@ static bool processMenuCommand(HWND hwnd, int code)
 		break;
 
 	case ID_FILTER_RESIZE:
-		DialogResize::create();
+		if (GdiPlusManager::getInstance().getImage()) {
+			DialogResize::create();
+			Window::getInstance().repaintImages();
+			Window::getInstance().updateStats();
+		}
 		break;
 	case ID_FILTER_BLUR:
-		DialogBlur::create();
+		if (GdiPlusManager::getInstance().getImage()) {
+			DialogBlur::create();
+			Window::getInstance().repaintImages();
+		}
 		break;
 	case ID_FILTER_SEPIA:
 		GdiPlusManager::getInstance().ApplySepia();

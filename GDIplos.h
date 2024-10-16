@@ -24,6 +24,7 @@ public:
     void setGeneratedImage(Gdiplus::Bitmap* i);
 
     Gdiplus::Bitmap* ResizeImage(Gdiplus::Bitmap* bmp, int newWidth, int newHeight);
+    void ApplyResize(int newWidth, int newHeight);
     void ApplyBlur(int radius);
     void ApplySepia();
 
