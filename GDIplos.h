@@ -17,12 +17,11 @@ public:
     ~GdiPlusManager();
 
     bool LoadImageFromFile(const char* filePath);
-    void DrawImage(HDC hdc, int x, int y);
 
     inline Gdiplus::Bitmap* getImage() const { return loadedImage; }
 
     inline Gdiplus::Bitmap* getGeneratedImage() const { return generatedImage; }
-    inline void setGeneratedImage(Gdiplus::Bitmap* i) { generatedImage = i; }
+    void setGeneratedImage(Gdiplus::Bitmap* i);
 
     Gdiplus::Bitmap* ResizeImage(Gdiplus::Bitmap* bmp, int newWidth, int newHeight);
     void ApplyBlur(int radius);

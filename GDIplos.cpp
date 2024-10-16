@@ -52,18 +52,16 @@ bool GdiPlusManager::LoadImageFromFile(const char* filePath)
         Application::log(logMessage.c_str());
         return false;
     }
-
 }
 
-void GdiPlusManager::DrawImage(HDC hdc, int x, int y)
+void GdiPlusManager::setGeneratedImage(Gdiplus::Bitmap* i)
 {
-    if (!loadedImage) {
-        return;
+    if (generatedImage) {
+        delete generatedImage;
     }
-    Gdiplus::Graphics graphics(hdc);
-    graphics.DrawImage(loadedImage, x, y);
-}
 
+    generatedImage = i;
+}
 
 Gdiplus::Bitmap* GdiPlusManager::ResizeImage(Gdiplus::Bitmap* bmp, int newWidth, int newHeight)
 {
