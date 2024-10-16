@@ -247,6 +247,10 @@ void Application::encode(EncodeMethod m)
 		return;
 	}
 
+	uint64_t freq, time0, time1;
+	QueryPerformanceFrequency((LARGE_INTEGER*) &freq);
+	QueryPerformanceCounter((LARGE_INTEGER*) &time0);
+
 	switch (m)
 	{
 	case EncodeMethod::LSB:
@@ -259,6 +263,11 @@ void Application::encode(EncodeMethod m)
 		MatriceEmbedding::EmbedMessageInImage("This is a secret message (with matrix embed)!");
 		break;
 	}
+
+	QueryPerformanceCounter((LARGE_INTEGER*) &time1);
+
+	int duration = ceil(((time1 - time0) / (double)freq) * 1000.0);
+	Application::log((std::string("Encoded ") + std::to_string(messageBuffer.getSize()) + " bytes in " + std::to_string(duration) + " ms.").c_str());
 }
 
 void Application::decode(EncodeMethod m)
@@ -267,6 +276,10 @@ void Application::decode(EncodeMethod m)
 		free(decodedBuffer.getData());
 		decodedBuffer = BinaryBuffer();
 	}
+
+	uint64_t freq, time0, time1;
+	QueryPerformanceFrequency((LARGE_INTEGER*) &freq);
+	QueryPerformanceCounter((LARGE_INTEGER*) &time0);
 
 	switch (m)
 	{
@@ -280,6 +293,11 @@ void Application::decode(EncodeMethod m)
 		MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
 	}
+
+	QueryPerformanceCounter((LARGE_INTEGER*) &time1);
+
+	int duration = ceil(((time1 - time0) / (double) freq) * 1000.0);
+	Application::log((std::string("Decoded ") + std::to_string(decodedBuffer.getSize()) + " bytes in " + std::to_string(duration) + " ms.").c_str());
 }
 
 

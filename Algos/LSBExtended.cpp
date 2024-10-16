@@ -36,8 +36,6 @@ void LSBExtended::EmbedMessageInImage(const BinaryBuffer& message)
         bitmap->SetPixel(x, y, Gdiplus::Color(255, r, g, b));
     }
 
-    Application::log((std::string("Encoded ") + std::to_string(message.getSize()) + " bytes.").c_str());
-
     GdiPlusManager::getInstance().setGeneratedImage(bitmap);
 }
 
@@ -64,8 +62,6 @@ BinaryBuffer LSBExtended::DecodeMessageFromImage(Bitmap* bmp)
             cur++;
         }
     }
-
-    Application::log((std::string("Decoded ") + std::to_string(numBytes) + " bytes.").c_str());
     
     return BinaryBuffer(data, numBytes);
 }
