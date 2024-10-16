@@ -46,6 +46,7 @@
 	  <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Algos\F5.cpp">
+    <ClCompile Include="ResAnalysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,6 +85,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Algos\F5.h">
+    <ClInclude Include="ResAnalysis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

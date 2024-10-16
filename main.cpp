@@ -1,6 +1,7 @@
 #include <Windows.h>
 
 #include "Window.h"
+#include "ResAnalysis.h"
 
 
 #define SHOW_CONSOLE
