@@ -3,6 +3,9 @@
 #include "Application.h"
 #include "GDIplos.h"
 
+#include "Dialog/DialogResize.h"
+#include "Dialog/DialogBlur.h"
+
 #include <Windows.h>
 
 #include "resource.h"
@@ -218,6 +221,17 @@ static bool processMenuCommand(HWND hwnd, int code)
 		break;
 	case ID_FILE_EXIT:
 		DestroyWindow(hwnd);
+		break;
+
+	case ID_FILTER_RESIZE:
+		DialogResize::create();
+		break;
+	case ID_FILTER_BLUR:
+		DialogBlur::create();
+		break;
+	case ID_FILTER_SEPIA:
+		GdiPlusManager::getInstance().ApplySepia();
+		Window::getInstance().repaintImages();
 		break;
 
 	case ID_BTN_OPEN:

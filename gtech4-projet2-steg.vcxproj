@@ -136,6 +136,8 @@
     <ClCompile Include="Algos\LSB.cpp" />
     <ClCompile Include="Algos\LSBExtended.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Dialog\DialogBlur.cpp" />
+    <ClCompile Include="Dialog\DialogResize.cpp" />
     <ClCompile Include="GDIplos.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -147,6 +149,8 @@
     <ClInclude Include="Algos\LSBExtended.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="BinaryBuffer.h" />
+    <ClInclude Include="Dialog\DialogBlur.h" />
+    <ClInclude Include="Dialog\DialogResize.h" />
     <ClInclude Include="GDIplos.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Algos\MatriceEmbedding.h" />
