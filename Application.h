@@ -8,6 +8,7 @@ enum class EncodeMethod
 	LSB,
 	LSB_EXTENDED,
 	MATRIX_EMBEDDING,
+	F5,
 	NUM_METHODS
 };
 

@@ -7,6 +7,7 @@
 #include "Algos/LSB.h"
 #include "Algos/LSBExtended.h"
 #include "Algos/MatriceEmbedding.h"
+#include "Algos/F5.h"
 
 #include <Windows.h>
 
@@ -280,6 +281,9 @@ void Application::encode(EncodeMethod m)
 	case EncodeMethod::MATRIX_EMBEDDING:
 		MatriceEmbedding::EmbedMessageInImage("This is a secret message (with matrix embed)!");
 		break;
+	case EncodeMethod::F5:
+		F5::EmbedMessageInImage(messageBuffer);
+		break;
 	}
 
 	QueryPerformanceCounter((LARGE_INTEGER*) &time1);
@@ -310,6 +314,9 @@ void Application::decode(EncodeMethod m)
 	case EncodeMethod::MATRIX_EMBEDDING:
 		MatriceEmbedding::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
 		break;
+	case EncodeMethod::F5:
+		F5::DecodeMessageFromImage(GdiPlusManager::getInstance().getImage());
+		break;
 	}
 
 	QueryPerformanceCounter((LARGE_INTEGER*) &time1);
@@ -329,6 +336,8 @@ int Application::getMaximumBytes(EncodeMethod m, int width, int height)
 		return (width * height);
 	case EncodeMethod::MATRIX_EMBEDDING:
 		return 0; // TODO : implement.
+	case EncodeMethod::F5:
+		return (width * height);
 	default:
 		return 0;
 	}
@@ -352,6 +361,7 @@ const char* Application::getEncodeMethodString(EncodeMethod r)
 	case EncodeMethod::LSB: return "LSB";
 	case EncodeMethod::LSB_EXTENDED: return "LSB (Extended)";
 	case EncodeMethod::MATRIX_EMBEDDING: return "Matrix Embedding";
+	case EncodeMethod::F5: return "F5";
 	}
 }
 
