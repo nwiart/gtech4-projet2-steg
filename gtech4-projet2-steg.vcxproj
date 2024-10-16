@@ -140,6 +140,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Algos\MatriceEmbedding.cpp" />
+    <ClCompile Include="ResAnalysis.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -150,6 +151,7 @@
     <ClInclude Include="GDIplos.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Algos\MatriceEmbedding.h" />
+    <ClInclude Include="ResAnalysis.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
