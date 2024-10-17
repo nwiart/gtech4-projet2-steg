@@ -1,100 +1,38 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="Algos\F5.cpp" />
+    <ClCompile Include="Algos\LSB.cpp" />
+    <ClCompile Include="Algos\LSBExtended.cpp" />
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Dialog\DialogBlur.cpp" />
+    <ClCompile Include="Dialog\DialogResize.cpp" />
+    <ClCompile Include="GDIplos.cpp" />
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Algos\MatriceEmbedding.cpp" />
+    <ClCompile Include="ResAnalysis.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GDIplos.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Application.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Algos\MatriceEmbedding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Algos\LSB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Algos\LSBExtended.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Dialog\DialogResize.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Dialog\DialogBlur.cpp">
-	  <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Algos\F5.cpp">
-    <ClCompile Include="ResAnalysis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="Algos\F5.h" />
+    <ClInclude Include="Algos\LSB.h" />
+    <ClInclude Include="Algos\LSBExtended.h" />
+    <ClInclude Include="Application.h" />
+    <ClInclude Include="BinaryBuffer.h" />
+    <ClInclude Include="Dialog\DialogBlur.h" />
+    <ClInclude Include="Dialog\DialogResize.h" />
+    <ClInclude Include="GDIplos.h" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="Algos\MatriceEmbedding.h" />
+    <ClInclude Include="ResAnalysis.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GDIplos.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Application.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Algos\MatriceEmbedding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Algos\LSB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BinaryBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Algos\LSBExtended.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Dialog\DialogResize.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Dialog\DialogBlur.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Algos\F5.h">
-    <ClInclude Include="ResAnalysis.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ResourceCompile Include="gtech4-projet2-steg.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="gtech4-projet2-steg.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>

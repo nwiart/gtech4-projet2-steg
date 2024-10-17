@@ -4,6 +4,8 @@
 #include "Logger.h"
 #include "Application.h"
 
+#include <emmintrin.h>
+
 
 GdiPlusManager& GdiPlusManager::getInstance()
 {
@@ -93,38 +95,122 @@ void GdiPlusManager::ApplyBlur(int radius)
     int width = loadedImage->GetWidth();
     int height = loadedImage->GetHeight();
 
+    Gdiplus::Bitmap* hblurredImage = new Gdiplus::Bitmap(width, height, loadedImage->GetPixelFormat());
     Gdiplus::Bitmap* blurredImage = new Gdiplus::Bitmap(width, height, loadedImage->GetPixelFormat());
 
-    for (int y = radius; y < height - radius; y++) {
+    const int icount = (radius * 2 + 1);
+    __m128i count = _mm_set1_epi32(icount);
+
+    Gdiplus::Rect rect(0, 0, width, height);
+    Gdiplus::BitmapData imgData, blurData;
+
+    loadedImage->LockBits(&rect, Gdiplus::ImageLockModeRead, loadedImage->GetPixelFormat(), &imgData);
+    hblurredImage->LockBits(&rect, Gdiplus::ImageLockModeWrite, hblurredImage->GetPixelFormat(), &blurData);
+
+    for (int y = 0; y < height; y++) {
         for (int x = radius; x < width - radius; x++) {
-            int r = 0, g = 0, b = 0, count = 0;
+            __m128i accum = _mm_setzero_si128();
 
-            for (int ky = -radius; ky <= radius; ky++) {
-                for (int kx = -radius; kx <= radius; kx++) {
-                    Gdiplus::Color color;
-                    loadedImage->GetPixel(x + kx, y + ky, &color);
+            for (int kx = -radius; kx <= radius; kx++) {
+                Gdiplus::Color c(((uint32_t*)imgData.Scan0)[y * width + x+kx]);
+                __m128i color = _mm_set_epi32(c.GetB(), c.GetG(), c.GetR(), c.GetA());
 
-                    r += color.GetRed();
-                    g += color.GetGreen();
-                    b += color.GetBlue();
-                    count++;
-                }
+                accum = _mm_add_epi32(accum, color);
             }
 
-            r /= count;
-            g /= count;
-            b /= count;
-
-            Gdiplus::Color avgColor(r, g, b);
-            blurredImage->SetPixel(x, y, avgColor);
+            accum = _mm_cvtps_epi32(_mm_div_ps(_mm_cvtepi32_ps(accum), _mm_cvtepi32_ps(count)));
+            ((uint32_t*) blurData.Scan0)[y * width + x] = Gdiplus::Color::MakeARGB(accum.m128i_i32[0], accum.m128i_i32[1], accum.m128i_i32[2], accum.m128i_i32[3]);
         }
     }
+
+    loadedImage->UnlockBits(&imgData);
+    hblurredImage->UnlockBits(&blurData);
+
+    hblurredImage->LockBits(&rect, Gdiplus::ImageLockModeRead, hblurredImage->GetPixelFormat(), &imgData);
+    blurredImage->LockBits(&rect, Gdiplus::ImageLockModeWrite, blurredImage->GetPixelFormat(), &blurData);
+
+    for (int y = radius; y < height - radius; y++) {
+        for (int x = 0; x < width; x++) {
+            __m128i accum = _mm_setzero_si128();
+
+            for (int ky = -radius; ky <= radius; ky++) {
+                Gdiplus::Color c(((uint32_t*)imgData.Scan0)[(y + ky) * width + x]);
+                __m128i color = _mm_set_epi32(c.GetB(), c.GetG(), c.GetR(), c.GetA());
+
+                accum = _mm_add_epi32(accum, color);
+            }
+
+            accum = _mm_cvtps_epi32(_mm_div_ps(_mm_cvtepi32_ps(accum), _mm_cvtepi32_ps(count)));
+            ((uint32_t*)blurData.Scan0)[y * width + x] = Gdiplus::Color::MakeARGB(accum.m128i_i32[0], accum.m128i_i32[1], accum.m128i_i32[2], accum.m128i_i32[3]);
+        }
+    }
+
+    hblurredImage->UnlockBits(&imgData);
+    blurredImage->UnlockBits(&blurData);
+
+    delete hblurredImage;
 
     delete loadedImage;
     loadedImage = blurredImage;
 
     Application::log(("Applied manual blur with radius: " + std::to_string(radius)).c_str());
 }
+
+/*void GdiPlusManager::ApplyBlur(int radius)
+{
+    if (!loadedImage) {
+        return;
+    }
+
+    int width = loadedImage->GetWidth();
+    int height = loadedImage->GetHeight();
+
+    Gdiplus::Bitmap* hblurredImage = new Gdiplus::Bitmap(width, height, loadedImage->GetPixelFormat());
+    Gdiplus::Bitmap* blurredImage = new Gdiplus::Bitmap(width, height, loadedImage->GetPixelFormat());
+
+    for (int y = 0; y < height; y++) {
+        for (int x = radius; x < width - radius; x++) {
+            int r = 0, g = 0, b = 0;
+
+            for (int kx = -radius; kx <= radius; kx++) {
+                Gdiplus::Color color;
+                loadedImage->GetPixel(x + kx, y, &color);
+
+                r += color.GetRed();
+                g += color.GetGreen();
+                b += color.GetBlue();
+            }
+
+            int count = (radius * 2 + 1);
+            hblurredImage->SetPixel(x, y, Gdiplus::Color(r / count, g / count, b / count));
+        }
+    }
+
+    for (int y = radius; y < height - radius; y++) {
+        for (int x = 0; x < width; x++) {
+            int r = 0, g = 0, b = 0;
+
+            for (int ky = -radius; ky <= radius; ky++) {
+                Gdiplus::Color color;
+                hblurredImage->GetPixel(x, y + ky, &color);
+
+                r += color.GetRed();
+                g += color.GetGreen();
+                b += color.GetBlue();
+            }
+
+            int count = (radius * 2 + 1);
+            blurredImage->SetPixel(x, y, Gdiplus::Color(r / count, g / count, b / count));
+        }
+    }
+
+    delete hblurredImage;
+
+    delete loadedImage;
+    loadedImage = blurredImage;
+
+    Application::log(("Applied manual blur with radius: " + std::to_string(radius)).c_str());
+}*/
 
 void GdiPlusManager::ApplySepia()
 {
